@@ -1,0 +1,948 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-b from-base-100 to-base-100 dark:from-gray-950 dark:to-gray-900">
+    <style>
+        /* Brand palette reuse (falls back if already defined globally) */
+        :root{ --brand: #4f46e5; --brand-600: #4f46e5; --brand-800: #3730a3; }
+        .text-brand { color: var(--brand) !important; }
+        .bg-brand { background-color: var(--brand) !important; }
+        .ring-brand { box-shadow: 0 0 0 4px rgba(79,70,229,0.12); }
+
+        /* Card polish */
+        .card-soft { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02)); border: 1px solid rgba(15,23,42,0.04); }
+
+        /* Rating bar animation */
+        .rating-bar > div { width: 0%; }
+        .rating-bar.animate > div { transition: width 900ms cubic-bezier(.2,.9,.2,1); }
+
+
+        /* Floating blobs */
+        .bg-blob { position: absolute; border-radius: 50%; filter: blur(40px); opacity: .55; transform: translate3d(0,0,0); animation: float 8s ease-in-out infinite; }
+        @keyframes float { 0%{ transform: translateY(0) } 50%{ transform: translateY(-12px) } 100%{ transform: translateY(0) } }
+
+        /* Animated gradient text */
+        .gradient-text{ background: linear-gradient(90deg,var(--brand) 0%, #06b6d4 50%, #f59e0b 100%); background-size: 200% 200%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: gradientShift 6s linear infinite; }
+        @keyframes gradientShift{ 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+        /* CTA animated */
+        .btn-cta{ background-image: linear-gradient(90deg,var(--brand), #06b6d4); transition: transform .18s ease, box-shadow .18s ease; }
+        .btn-cta:active{ transform: translateY(1px) scale(.995); }
+
+        /* Star sparkle on hover */
+        .star-sparkle{ transition: transform .18s ease, color .18s ease; }
+
+        /* Mini animations for like */
+        .like-burst{ transform-origin: center; animation: burst .45s ease; }
+        @keyframes burst{ 0%{ transform: scale(1) } 40%{ transform: scale(1.25) } 100%{ transform: scale(1) } }
+
+        /* Counters */
+        .counter { font-variant-numeric: tabular-nums; }
+        /* Smooth reveal */
+        .reveal { opacity: 0; transform: translateY(8px); transition: opacity .6s ease, transform .6s ease; }
+        .reveal.visible { opacity: 1; transform: none; }
+
+        /* FAQ */
+        .faq-content[hidden] { display: none; }
+    </style>
+    <!-- Hero Section -->
+    <section class="relative py-16 md:py-24 overflow-hidden">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <!-- Background Elements -->
+            <div class="absolute inset-0">
+                <div class="absolute top-20 left-10 w-64 h-64 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-full blur-3xl"></div>
+                <div class="absolute bottom-32 right-20 w-80 h-80 bg-accent/5 rounded-full blur-3xl"></div>
+            </div>
+            
+            <div class="max-w-4xl mx-auto text-center relative z-10">
+                <!-- Logo & Title -->
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 mb-8">
+                    <i class="fas fa-award text-2xl text-primary"></i>
+                </div>
+                
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+                    <span class="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                        Témoignages Clients
+                    </span>
+                </h1>
+                
+                <p class="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+                    Découvrez les retours d'expérience de nos partenaires et clients
+                </p>
+                
+                <!-- Overall Rating Card -->
+                <div class="inline-flex flex-col items-center p-8 bg-base-100 dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 card-soft reveal">
+                    <div class="relative mb-6">
+                        <div class="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                            4.9
+                        </div>
+                        <div class="absolute -top-3 -right-3">
+                            <div class="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                                <i class="fas fa-trophy text-xs"></i>
+                                <span>TOP RATED</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Stars -->
+                    <div class="flex gap-1 mb-4" aria-hidden="true">
+                        {% for i in "12345" %}
+                        <i class="fas fa-star text-xl text-yellow-400"></i>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Stats -->
+                    <div class="text-center">
+                        <div class="text-gray-600 dark:text-gray-400 text-lg mb-4">
+                            Basé sur <span class="font-semibold text-gray-900 dark:text-white">247 avis vérifiés</span>
+                        </div>
+                        
+                        <!-- Trust Badges -->
+                        <div class="flex flex-wrap justify-center gap-2">
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 dark:bg-green-900/20 rounded-full border border-green-100 dark:border-green-700/30">
+                                <i class="fas fa-shield-check text-green-600 dark:text-green-400 text-sm"></i>
+                                <span class="text-sm font-medium text-green-700 dark:text-green-300">100% vérifiés</span>
+                            </div>
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-full border border-blue-100 dark:border-blue-700/30">
+                                <i class="fas fa-clock text-blue-600 dark:text-blue-400 text-sm"></i>
+                                <span class="text-sm font-medium text-blue-700 dark:text-blue-300">Réponse 24h</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <!-- Stats & Analysis -->
+        <div class="max-w-6xl mx-auto mb-16">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Stats & Chart -->
+                <div class="lg:col-span-2">
+                    <div class="bg-base-100 dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden reveal">
+                        <div class="p-6 md:p-8">
+                            <!-- Header -->
+                            <div class="flex items-center justify-between mb-8">
+                                <div>
+                                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                        <i class="fas fa-chart-line text-primary"></i>
+                                        Analyse des évaluations
+                                    </h2>
+                                    <p class="text-gray-600 dark:text-gray-400 mt-1">Distribution des notes sur 12 mois</p>
+                                </div>
+                                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-semibold rounded-full">
+                                    <i class="fas fa-sync-alt animate-spin"></i>
+                                    <span>Temps réel</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Rating Chart -->
+                            <div class="space-y-6">
+                                {% for rating in "54321" %}
+                                <div class="group">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex gap-0.5">
+                                                {% for i in rating %}
+                                                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                                {% endfor %}
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ rating }} étoiles</span>
+                                        </div>
+                                        <span class="font-semibold text-gray-900 dark:text-white">
+                                            {% if rating == "5" %}92%
+                                            {% elif rating == "4" %}6%
+                                            {% elif rating == "3" %}1%
+                                            {% else %}0.5%
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden rating-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                                        <div class="h-full bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 rounded-full"
+                                             data-width="{% if rating == '5' %}92{% elif rating == '4' %}6{% elif rating == '3' %}1{% else %}0{% endif %}" style="width:0%"></div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Stats Grid -->
+                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-12 pt-12 border-t border-gray-200 dark:border-gray-700">
+                                <div class="text-center p-4 hover:bg-gray-50 rounded-xl transition-colors duration-200">
+                                    <div class="text-3xl font-bold text-gray-900 mb-1">247</div>
+                                    <div class="text-sm text-gray-600">Avis totaux</div>
+                                </div>
+                                <div class="text-center p-4 hover:bg-gray-50 rounded-xl transition-colors duration-200">
+                                    <div class="text-3xl font-bold text-gray-900 mb-1">4.9/5</div>
+                                    <div class="text-sm text-gray-600">Note moyenne</div>
+                                </div>
+                                <div class="text-center p-4 hover:bg-gray-50 rounded-xl transition-colors duration-200">
+                                    <div class="text-3xl font-bold text-gray-900 mb-1">98%</div>
+                                    <div class="text-sm text-gray-600">Satisfaction</div>
+                                </div>
+                                <div class="text-center p-4 hover:bg-gray-50 rounded-xl transition-colors duration-200">
+                                    <div class="text-3xl font-bold text-gray-900 mb-1">24h</div>
+                                    <div class="text-sm text-gray-600">Délai réponse</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CTA Card -->
+                <div class="bg-gradient-to-br from-primary via-primary/90 to-secondary rounded-2xl shadow-lg overflow-hidden reveal" role="region" aria-label="Call to action">
+                    <div class="p-8 h-full flex flex-col justify-center">
+                        <!-- Icon -->
+                        <div class="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-comment-alt text-3xl text-white"></i>
+                        </div>
+                        
+                        <!-- Content -->
+                        <h3 class="text-2xl font-bold text-white mb-4 text-center">
+                            Partagez votre expérience
+                        </h3>
+                        <p class="text-white/90 mb-8 text-center leading-relaxed">
+                            Votre témoignage aide d'autres entreprises à prendre des décisions éclairées
+                        </p>
+                        
+                        <!-- Buttons -->
+                        <div class="space-y-3">
+                                <button type="button" onclick="openReviewModal()" 
+                                    class="w-full bg-white text-primary hover:bg-gray-50 font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand" aria-haspopup="dialog">
+                                <i class="fas fa-edit mr-2"></i>
+                                Écrire un témoignage
+                            </button>
+                            <button onclick="openVideoReviewModal()" 
+                                    class="w-full bg-transparent border-2 border-white/30 text-white hover:bg-white/10 font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+                                <i class="fas fa-video mr-2"></i>
+                                Témoignage vidéo
+                            </button>
+                        </div>
+                        
+                        <!-- Note -->
+                        <div class="mt-12 flex items-center justify-center gap-2 text-sm text-white/80">
+                            <i class="fas fa-gem"></i>
+                            <span>Chaque témoignage reçoit une réponse personnelle</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="max-w-6xl mx-auto">
+            <!-- Header & Filters -->
+            <div class="bg-base-100 dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8 reveal">
+                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                            <i class="fas fa-comments text-primary"></i>
+                            Témoignages récents
+                        </h2>
+                        <p class="text-gray-600 dark:text-gray-400">Découvrez les expériences de nos clients</p>
+                    </div>
+                    
+                    <!-- Filter Controls -->
+                    <div class="flex flex-wrap gap-3">
+                        <!-- Sort Dropdown -->
+                        <div class="relative">
+                            <button id="sort-button" aria-expanded="false" aria-controls="sort-dropdown"
+                                class="flex items-center gap-2 px-4 py-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-700 dark:text-gray-300 font-medium transition-colors duration-200 border border-gray-200 dark:border-gray-700">
+                                <i class="fas fa-sort-amount-down"></i>
+                                Trier par
+                                <i class="fas fa-chevron-down ml-2 text-xs transition-transform duration-200"></i>
+                            </button>
+                            <div id="sort-dropdown" class="hidden absolute top-full mt-2 right-0 bg-base-100 dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 min-w-[200px] z-10" role="menu" aria-labelledby="sort-button">
+                                <div class="py-2">
+                                    <a onclick="sortReviews('recent')" class="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 cursor-pointer">
+                                        <i class="fas fa-clock"></i>
+                                        Plus récents
+                                    </a>
+                                    <a onclick="sortReviews('helpful')" class="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 cursor-pointer">
+                                        <i class="fas fa-thumbs-up"></i>
+                                        Plus utiles
+                                    </a>
+                                    <a onclick="sortReviews('rating')" class="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 cursor-pointer">
+                                        <i class="fas fa-star"></i>
+                                        Meilleures notes
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                {% for review in reviews %}
+                <article class="bg-base-100 dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1 reveal" aria-labelledby="review-title-{{ forloop.counter }}">
+                    <!-- Featured Badge -->
+                    {% if review.featured %}
+                    <div class="absolute top-4 left-4 z-10">
+                        <div class="bg-gradient-to-r from-accent to-accent/90 text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                            <i class="fas fa-crown"></i>
+                            <span>Élu de la semaine</span>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="p-6">
+                        <!-- Header -->
+                        <div class="flex items-start justify-between mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="relative">
+                                    <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
+                                        <span class="text-lg font-bold text-primary">{{ review.initials }}</span>
+                                    </div>
+                                    <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
+                                        <i class="fas fa-check text-xs text-white"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 dark:text-white">{{ review.name }}</h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ review.position }}</p>
+                                </div>
+                            </div>
+                            <!-- Rating -->
+                            <div class="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1.5 rounded-full">
+                                <i class="fas fa-star text-yellow-400"></i>
+                                <span class="font-bold text-gray-900 dark:text-white">{{ review.rating }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="mb-6">
+                            <h5 id="review-title-{{ forloop.counter }}" class="font-semibold text-lg text-gray-900 dark:text-white mb-3">{{ review.title }}</h5>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3 leading-relaxed">{{ review.content }}</p>
+
+                            <!-- Tags -->
+                            <div class="flex flex-wrap gap-2">
+                                {% for tag in review.tags %}
+                                <span class="inline-block px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm rounded-full hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-colors duration-200">
+                                    {{ tag }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="flex items-center justify-between text-sm pt-6 border-t border-gray-200 dark:border-gray-700">
+                            <div class="text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                                <i class="fas fa-clock text-primary"></i>
+                                <span>{{ review.time }}</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <button class="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-200 group" aria-label="Aimer le témoignage">
+                                    <i class="far fa-thumbs-up group-hover:scale-110 transition-transform"></i>
+                                    <span class="font-medium">{{ review.likes }}</span>
+                                </button>
+                                <button class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors duration-200" aria-label="Partager le témoignage">
+                                    <i class="far fa-share-square"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            
+            <!-- Load More -->
+            <div class="text-center">
+                <button id="load-more" 
+                        class="inline-flex items-center gap-3 px-8 py-3.5 bg-base-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 font-semibold hover:shadow-md transition-all duration-200">
+                    <i class="fas fa-plus"></i>
+                    Charger plus de témoignages
+                </button>
+            </div>
+        </div>
+
+        <!-- Trust Section -->
+        <div class="max-w-6xl mx-auto mt-20">
+            <div class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl overflow-hidden">
+                <div class="p-12">
+                    <div class="text-center mb-12">
+                        <h3 class="text-2xl font-bold text-white mb-4 flex items-center justify-center gap-2">
+                            <i class="fas fa-handshake"></i>
+                            Notre engagement qualité
+                        </h3>
+                        <p class="text-gray-300 max-w-2xl mx-auto">
+                            Excellence, transparence et résultats mesurables pour chaque projet
+                        </p>
+                    </div>
+                    
+                    <!-- Trust Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div class="text-center group cursor-pointer">
+                            <div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                                <i class="fas fa-shield-alt text-2xl text-white"></i>
+                            </div>
+                            <h4 class="font-semibold text-white mb-2">Avis vérifiés</h4>
+                            <p class="text-gray-300 text-sm">100% authentiques et contrôlés</p>
+                        </div>
+                        <div class="text-center group cursor-pointer">
+                            <div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                                <i class="fas fa-trophy text-2xl text-white"></i>
+                            </div>
+                            <h4 class="font-semibold text-white mb-2">Excellence</h4>
+                            <p class="text-gray-300 text-sm">Prix innovation digitale 2024</p>
+                        </div>
+                        <div class="text-center group cursor-pointer">
+                            <div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                                <i class="fas fa-handshake text-2xl text-white"></i>
+                            </div>
+                            <h4 class="font-semibold text-white mb-2">Confiance</h4>
+                            <p class="text-gray-300 text-sm">98% de clients satisfaits</p>
+                        </div>
+                        <div class="text-center group cursor-pointer">
+                            <div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                                <i class="fas fa-headset text-2xl text-white"></i>
+                            </div>
+                            <h4 class="font-semibold text-white mb-2">Support</h4>
+                            <p class="text-gray-300 text-sm">Assistance dédiée 24h/7j</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="max-w-4xl mx-auto mt-20">
+            <div class="text-center mb-12">
+                <h3 class="text-2xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-2">
+                    <i class="fas fa-question-circle text-primary"></i>
+                    <span class="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                        Questions fréquentes
+                    </span>
+                </h3>
+                <p class="text-gray-600">Tout savoir sur notre processus d'évaluation</p>
+            </div>
+            
+            <!-- FAQ Accordion -->
+            <div class="space-y-3">
+                {% for faq in faqs %}
+                <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                    <button class="faq-toggle flex items-center justify-between w-full p-6 text-left hover:bg-gray-50 transition-colors duration-200 group">
+                        <span class="font-medium text-gray-900 flex items-center gap-2">
+                            <i class="fas fa-question text-primary"></i>
+                            {{ faq.question }}
+                        </span>
+                        <i class="fas fa-chevron-down text-primary text-sm transition-transform duration-200"></i>
+                    </button>
+                    <div class="hidden px-6 pb-6">
+                        <p class="text-gray-600 leading-relaxed">{{ faq.answer }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts: interactions for avis page (rating bar animation, FAQ, sort dropdown, load more) -->
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    // Reveal elements using IntersectionObserver for smooth performant animations
+    const io = new IntersectionObserver((entries)=>{
+        entries.forEach(entry=>{
+            if(entry.isIntersecting){
+                entry.target.classList.add('visible');
+                // animate rating bar when visible
+                const bar = entry.target.querySelector('.rating-bar');
+                if(bar){
+                    const inner = bar.querySelector('div');
+                    const w = inner && inner.dataset.width ? inner.dataset.width : 0;
+                    bar.classList.add('animate'); inner.style.width = w + '%'; bar.setAttribute('aria-valuenow', w);
+                }
+                io.unobserve(entry.target);
+            }
+        });
+    }, {threshold: .12});
+
+    document.querySelectorAll('.reveal').forEach(el=> io.observe(el));
+
+    // Animate counters when in view
+    const animateCounter = (el, target)=>{
+        const start = 0; const end = Number(target);
+        const duration = 900; let startTime = null;
+        const step = (ts)=>{
+            if(!startTime) startTime = ts;
+            const progress = Math.min((ts - startTime)/duration, 1);
+            const value = Math.floor(progress * (end - start) + start);
+            el.textContent = value.toLocaleString();
+            if(progress < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    };
+
+    const counterObserver = new IntersectionObserver((entries)=>{
+        entries.forEach(entry=>{
+            if(entry.isIntersecting){
+                const el = entry.target;
+                const target = el.dataset.target || el.textContent.replace(/[^0-9]/g,'');
+                animateCounter(el, target);
+                counterObserver.unobserve(el);
+            }
+        });
+    }, {threshold:.2});
+
+    document.querySelectorAll('.counter[data-target]').forEach(el=> counterObserver.observe(el));
+
+    // Sort dropdown
+    const sortBtn = document.getElementById('sort-button');
+    const sortDropdown = document.getElementById('sort-dropdown');
+    if(sortBtn && sortDropdown){
+        sortBtn.addEventListener('click', (e)=>{
+            e.stopPropagation();
+            const hidden = sortDropdown.classList.toggle('hidden');
+            sortBtn.setAttribute('aria-expanded', String(!hidden));
+        });
+        document.addEventListener('click', (e)=>{ if(!sortBtn.contains(e.target) && !sortDropdown.contains(e.target)) sortDropdown.classList.add('hidden'); });
+    }
+
+    // FAQ accordion (improve accessibility)
+    document.querySelectorAll('.faq-toggle').forEach((btn, idx)=>{
+        const content = btn.nextElementSibling;
+        btn.setAttribute('aria-expanded', 'false');
+        btn.setAttribute('aria-controls', 'faq-' + idx);
+        content.id = 'faq-' + idx;
+        content.setAttribute('hidden','');
+        btn.addEventListener('click', ()=>{
+            const open = !content.hasAttribute('hidden');
+            if(open) { content.setAttribute('hidden',''); btn.setAttribute('aria-expanded','false'); }
+            else { content.removeAttribute('hidden'); btn.setAttribute('aria-expanded','true'); }
+        });
+    });
+
+    // Load more stub (progressive reveal)
+    const loadMore = document.getElementById('load-more');
+    if(loadMore){
+        loadMore.addEventListener('click', ()=>{
+            loadMore.disabled = true; loadMore.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
+            setTimeout(()=>{ loadMore.disabled=false; loadMore.innerHTML = '<i class="fas fa-plus"></i> Charger plus de témoignages'; /* In production, fetch more via AJAX */ }, 900);
+        });
+    }
+
+    // Like and share interactions for each review
+    document.querySelectorAll('article').forEach(card=>{
+        const likeBtn = card.querySelector('[aria-label="Aimer le témoignage"]');
+        if(likeBtn){
+            likeBtn.addEventListener('click', (e)=>{
+                e.preventDefault();
+                const countEl = likeBtn.querySelector('.font-medium');
+                let n = Number(countEl.textContent) || 0; n += 1;
+                countEl.textContent = n;
+                const icon = likeBtn.querySelector('i'); icon.classList.add('like-burst');
+                setTimeout(()=> icon.classList.remove('like-burst'), 450);
+            });
+        }
+
+        const shareBtn = card.querySelector('[aria-label="Partager le témoignage"]');
+        if(shareBtn){
+            shareBtn.addEventListener('click', async (e)=>{
+                e.preventDefault();
+                const title = card.querySelector('h5')?.textContent || document.title;
+                const text = card.querySelector('p')?.textContent?.slice(0,120) || '';
+                const url = location.href + '#review-' + (card.getAttribute('aria-labelledby') || '');
+                try{
+                    if(navigator.share){
+                        await navigator.share({ title, text, url });
+                    } else {
+                        await navigator.clipboard.writeText(url);
+                        alert('Lien copié dans le presse-papiers');
+                    }
+                }catch(err){ alert('Impossible de partager — copiez le lien manuellement.'); }
+            });
+        }
+    });
+
+});
+</script>
+
+<!-- Review Modal -->
+<dialog id="review-modal" class="modal">
+    <div class="modal-box max-w-2xl p-0 bg-white rounded-2xl">
+        <div class="p-8">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-edit text-primary"></i>
+                        Partagez votre expérience
+                    </h3>
+                    <p class="text-gray-600 mt-1">Votre avis compte pour nous</p>
+                </div>
+                <button onclick="closeReviewModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Form -->
+            <form id="review-form" class="space-y-6" method="POST" action="{% url 'avis' %}">
+                {% csrf_token %}
+                <input type="hidden" name="rating" id="rating-input" value="0" />
+                <!-- Star Rating -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">
+                        Votre évaluation
+                    </label>
+                    <div class="flex gap-2 mb-3" id="star-rating">
+                        {% for i in "12345" %}
+                        <button type="button" class="star-btn text-3xl text-gray-300 hover:text-yellow-400 transition-colors duration-200"
+                                data-rating="{{ forloop.counter }}">
+                            <i class="far fa-star"></i>
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <div class="text-sm font-medium text-primary h-6" id="rating-text">
+                        Sélectionnez votre note
+                    </div>
+                </div>
+                
+                <!-- Form Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Nom complet *
+                        </label>
+                        <input type="text" name="name" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors duration-200">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Entreprise
+                        </label>
+                        <input type="text" name="company"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors duration-200">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Service utilisé *
+                        </label>
+                        <select name="service" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors duration-200">
+                            <option value="">Choisir un service</option>
+                            <option value="web">Développement Web</option>
+                            <option value="design">Design Graphique</option>
+                            <option value="marketing">Marketing Digital</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Email *
+                        </label>
+                        <input type="email" name="email" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors duration-200">
+                    </div>
+                </div>
+                
+                <!-- Title -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Titre de votre témoignage *
+                    </label>
+                    <input type="text" name="title" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors duration-200"
+                           placeholder="Exemple : Une excellente collaboration">
+                </div>
+                
+                <!-- Content -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Votre expérience *
+                    </label>
+                    <textarea name="content" required rows="4"
+                              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors duration-200 resize-none"
+                              placeholder="Partagez votre expérience en détail..."></textarea>
+                </div>
+                
+                <!-- Tags -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Mots-clés (optionnel)
+                    </label>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="tag-selector px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-primary hover:text-white transition-colors duration-200 cursor-pointer">
+                            Professionnel
+                        </span>
+                        <span class="tag-selector px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-primary hover:text-white transition-colors duration-200 cursor-pointer">
+                            Rapide
+                        </span>
+                        <span class="tag-selector px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-primary hover:text-white transition-colors duration-200 cursor-pointer">
+                            Qualité
+                        </span>
+                        <span class="tag-selector px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-primary hover:text-white transition-colors duration-200 cursor-pointer">
+                            Résultats
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Submit -->
+                <div class="flex items-center justify-between pt-6 border-t border-gray-100">
+                    <div class="flex items-center gap-2 text-gray-500 text-sm">
+                        <i class="fas fa-shield-alt text-primary"></i>
+                        Vos données sont sécurisées
+                    </div>
+                    <button type="submit"
+                            class="px-8 py-3.5 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        Publier le témoignage
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</dialog>
+
+<script>
+    let currentRating = 0;
+    
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Star Rating
+        document.querySelectorAll('.star-btn').forEach(btn => {
+            const rating = parseInt(btn.getAttribute('data-rating'));
+            btn.addEventListener('click', () => setRating(rating));
+            btn.addEventListener('mouseover', () => hoverStars(rating));
+            btn.addEventListener('mouseout', () => resetStars());
+        });
+        
+        // Apply dynamic widths to rating progress bars (data-width in percent)
+        document.querySelectorAll('[data-width]').forEach(el => {
+            const w = el.getAttribute('data-width');
+            if (w !== null && w !== undefined && w !== '') {
+                // ensure numeric value
+                const n = Number(w);
+                if (!Number.isNaN(n)) el.style.width = n + '%';
+            }
+        });
+        
+        // FAQ Toggle
+        document.querySelectorAll('.faq-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                const icon = this.querySelector('.fa-chevron-down');
+                
+                content.classList.toggle('hidden');
+                icon.classList.toggle('rotate-180');
+            });
+        });
+        
+        // Sort Dropdown
+        const sortButton = document.getElementById('sort-button');
+        const sortDropdown = document.getElementById('sort-dropdown');
+        const sortIcon = sortButton.querySelector('.fa-chevron-down');
+        
+        sortButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            sortDropdown.classList.toggle('hidden');
+            sortIcon.classList.toggle('rotate-180');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function() {
+            sortDropdown.classList.add('hidden');
+            sortIcon.classList.remove('rotate-180');
+        });
+        
+        // Tag selection
+        document.querySelectorAll('.tag-selector').forEach(tag => {
+            tag.addEventListener('click', function() {
+                this.classList.toggle('bg-primary');
+                this.classList.toggle('text-white');
+                this.classList.toggle('bg-gray-100');
+                this.classList.toggle('text-gray-700');
+            });
+        });
+    });
+    
+    function hoverStars(rating) {
+        document.querySelectorAll('.star-btn').forEach((btn, index) => {
+            const star = btn.querySelector('i');
+            if (index < rating) {
+                star.classList.remove('far', 'text-gray-300');
+                star.classList.add('fas', 'text-yellow-400');
+            } else {
+                star.classList.remove('fas', 'text-yellow-400');
+                star.classList.add('far', 'text-gray-300');
+            }
+        });
+    }
+    
+    function resetStars() {
+        hoverStars(currentRating);
+    }
+    
+    function setRating(rating) {
+        currentRating = rating;
+        // Sync hidden input for server-side
+        const ratingInput = document.getElementById('rating-input');
+        if (ratingInput) ratingInput.value = String(rating);
+        const labels = {
+            1: "Médiocre",
+            2: "Passable",
+            3: "Bien",
+            4: "Excellent",
+            5: "Exceptionnel"
+        };
+        document.getElementById('rating-text').textContent = labels[rating];
+        resetStars();
+    }
+    
+    // Modal Functions
+    function openReviewModal() {
+        document.getElementById('review-modal').showModal();
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeReviewModal() {
+        document.getElementById('review-modal').close();
+        document.body.style.overflow = '';
+        document.getElementById('review-form').reset();
+        currentRating = 0;
+        resetStars();
+        document.getElementById('rating-text').textContent = 'Sélectionnez votre note';
+        
+        // Reset tags
+        document.querySelectorAll('.tag-selector').forEach(tag => {
+            tag.classList.remove('bg-primary', 'text-white');
+            tag.classList.add('bg-gray-100', 'text-gray-700');
+        });
+    }
+    
+    function openVideoReviewModal() {
+        alert('Fonctionnalité bientôt disponible !');
+    }
+    
+    function sortReviews(type) {
+        const labels = {
+            'recent': 'Plus récents',
+            'helpful': 'Plus utiles',
+            'rating': 'Meilleures notes'
+        };
+        alert(`Tri par ${labels[type]} appliqué`);
+        document.getElementById('sort-dropdown').classList.add('hidden');
+        document.querySelector('#sort-button .fa-chevron-down').classList.remove('rotate-180');
+    }
+    
+    // Form Submission
+    document.getElementById('review-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validation
+        const requiredFields = this.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                field.classList.remove('border-red-500');
+            }
+        });
+        
+        if (!isValid || currentRating === 0) {
+            alert('Veuillez remplir tous les champs obligatoires et sélectionner une note');
+            return;
+        }
+        
+        // Submit form
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
+        submitBtn.disabled = true;
+        
+        // Simulate API call
+        setTimeout(() => {
+            alert('Merci pour votre témoignage ! Nous l\'examinerons dans les plus brefs délais.');
+            closeReviewModal();
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }, 1500);
+    });
+    
+    // Close modal when clicking on backdrop
+    document.getElementById('review-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeReviewModal();
+        }
+    });
+</script>
+
+<style>
+    .modal::backdrop {
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+    }
+    
+    .modal-box {
+        animation: modalOpen 0.3s ease-out;
+        border: none;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+    
+    @keyframes modalOpen {
+        from {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        /* standard property for broader compatibility */
+        line-clamp: 3;
+        box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    /* Animations */
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(to bottom, var(--primary), var(--secondary));
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        opacity: 0.8;
+    }
+    
+    /* Selection */
+    ::selection {
+        background: rgba(var(--primary), 0.1);
+        color: var(--primary);
+    }
+</style>
+
+{% endblock %}

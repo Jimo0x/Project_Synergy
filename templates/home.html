@@ -1,0 +1,935 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+/* ── DARK OVERRIDE (local to this page) ── */
+.home-dark-wrap {
+    background: #050508;
+    color: #E8E8F0;
+    position: relative;
+    overflow-x: hidden; /* ESSENTIEL : Empêche le scroll horizontal sur mobile */
+    max-width: 100vw;
+}
+
+/* Force navbar transparent over dark hero */
+body:has(.home-dark-wrap) {
+    overflow-x: hidden;
+}
+
+body:has(.home-dark-wrap) .navbar {
+    background: transparent !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    position: absolute;
+    width: 100%;
+    z-index: 100;
+}
+
+body:has(.home-dark-wrap) .nav-link { color: rgba(232,232,240,0.75) !important; }
+body:has(.home-dark-wrap) .nav-link:hover { color: white !important; background: rgba(255,255,255,0.08) !important; }
+body:has(.home-dark-wrap) .navbar .btn-ghost { color: rgba(232,232,240,0.75) !important; }
+
+/* ── FONTS ── */
+@import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@400;500;700;800&display=swap');
+
+.home-dark-wrap { font-family: 'Cabinet Grotesk', 'Space Grotesk', sans-serif; }
+.display-font { font-family: 'Clash Display', 'Space Grotesk', sans-serif; }
+
+/* ── CSS VARS ── */
+:root {
+    --nv: #8B5CF6;
+    --nc: #06B6D4;
+    --ng: linear-gradient(135deg, #8B5CF6, #06B6D4);
+    --ns: rgba(139,92,246,0.15);
+    --nb: rgba(6,182,212,0.15);
+    --ink: #050508;
+}
+
+/* ── HERO ── */
+#home-hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #050508;
+    padding-top: 5rem; /* Espace pour la navbar mobile */
+}
+
+#globe-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    opacity: 0.85;
+}
+
+.hero-noise {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+#home-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: radial-gradient(ellipse 80% 60% at 50% 50%, transparent 40%, #050508 100%);
+    pointer-events: none;
+}
+
+.hero-content-wrap {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 2rem 1.25rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--nc);
+    border: 1px solid rgba(6,182,212,0.3);
+    background: rgba(6,182,212,0.08);
+    padding: 0.35rem 1rem;
+    border-radius: 100px;
+    margin-bottom: 1.75rem;
+    white-space: nowrap;
+}
+
+.hero-tag::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--nc);
+    animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+}
+
+.hero-title {
+    font-family: 'Clash Display', 'Space Grotesk', sans-serif;
+    font-size: clamp(2.2rem, 6.5vw, 5.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: white;
+    margin-bottom: 1.5rem;
+}
+
+.hero-title .word-violet {
+    background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 50%, #06B6D4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-title .word-outline {
+    -webkit-text-stroke: 1.5px rgba(255,255,255,0.3);
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-sub {
+    font-size: clamp(0.95rem, 2vw, 1.2rem);
+    color: rgba(232,232,240,0.6);
+    line-height: 1.65;
+    max-width: 560px;
+    margin: 0 auto 2.5rem;
+}
+
+.hero-sub strong { color: rgba(232,232,240,0.9); }
+
+.hero-btns {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+}
+
+.btn-glow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 2rem;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    justify-content: center;
+}
+
+@media (min-width: 640px) {
+    .btn-glow { width: auto; }
+}
+
+.btn-glow-primary {
+    background: var(--ng);
+    color: white;
+    box-shadow: 0 0 20px rgba(139,92,246,0.4), 0 0 40px rgba(139,92,246,0.15);
+}
+
+.btn-glow-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(139,92,246,0.6), 0 0 60px rgba(139,92,246,0.2);
+    color: white;
+}
+
+.btn-glow-ghost {
+    background: transparent;
+    color: rgba(232,232,240,0.8);
+    border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+}
+
+.btn-glow-ghost:hover {
+    background: rgba(255,255,255,0.08);
+    color: white;
+    border-color: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+}
+
+.hero-metrics {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+@media (min-width: 768px) {
+    .hero-metrics { gap: 3rem; }
+}
+
+.metric-val {
+    font-family: 'Clash Display', 'Space Grotesk', sans-serif;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 700;
+    color: white;
+    display: block;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+}
+
+.metric-label {
+    font-size: 0.75rem;
+    color: rgba(232,232,240,0.45);
+    letter-spacing: 0.06em;
+}
+
+/* Scroll indicator */
+.scroll-hint {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255,255,255,0.3);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    animation: scrollBounce 2s ease-in-out infinite;
+}
+
+@keyframes scrollBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(6px); }
+}
+
+.scroll-hint-line {
+    width: 1px;
+    height: 30px;
+    background: linear-gradient(to bottom, rgba(139,92,246,0.6), transparent);
+}
+
+/* ── SECTIONS DARK ── */
+.dark-section { background: #050508; position: relative; }
+.dark-section-alt { background: #0A0A10; }
+
+.section-glow-v, .section-glow-c {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    max-width: 100vw; /* Empêche le dépassement sur mobile */
+}
+
+.section-glow-v {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 70%);
+}
+
+.section-glow-c {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(6,182,212,0.06) 0%, transparent 70%);
+}
+
+/* ── EYEBROW ── */
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+}
+
+.eyebrow-v { color: var(--nv); }
+.eyebrow-c { color: var(--nc); }
+
+.eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 2px;
+    border-radius: 1px;
+    background: currentColor;
+}
+
+.section-title {
+    font-family: 'Clash Display', 'Space Grotesk', sans-serif;
+    font-size: clamp(1.75rem, 5vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: white;
+    line-height: 1.15;
+}
+
+.section-subtitle {
+    font-size: 1rem;
+    color: rgba(232,232,240,0.5);
+    line-height: 1.65;
+    max-width: 560px;
+    margin: 0.75rem auto 0;
+}
+
+/* ── OBJECTIVE CARDS ── */
+.obj-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+@media (min-width: 768px) {
+    .obj-card { padding: 2.5rem; }
+}
+
+.obj-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.obj-card-v::before { background: radial-gradient(ellipse at top right, rgba(139,92,246,0.12), transparent 70%); }
+.obj-card-c::before { background: radial-gradient(ellipse at top right, rgba(6,182,212,0.12), transparent 70%); }
+
+.obj-card:hover { transform: translateY(-6px); border-color: rgba(255,255,255,0.12); }
+.obj-card:hover::before { opacity: 1; }
+
+.obj-icon {
+    width: 56px; height: 56px;
+    border-radius: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    position: relative; z-index: 1;
+}
+
+.obj-icon-v { background: rgba(139,92,246,0.15); color: #A78BFA; box-shadow: 0 0 20px rgba(139,92,246,0.2); }
+.obj-icon-c { background: rgba(6,182,212,0.12); color: #22D3EE; box-shadow: 0 0 20px rgba(6,182,212,0.15); }
+
+.obj-title {
+    font-family: 'Clash Display', 'Space Grotesk', sans-serif;
+    font-size: 1.35rem; font-weight: 700; color: white;
+    margin-bottom: 0.75rem; position: relative; z-index: 1;
+}
+
+.obj-desc {
+    font-size: 0.9rem; color: rgba(232,232,240,0.5);
+    line-height: 1.6; margin-bottom: 1.5rem; position: relative; z-index: 1;
+}
+
+.obj-list { list-style: none; padding: 0; margin: 0 0 2rem; position: relative; z-index: 1; }
+.obj-list li { display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; color: rgba(232,232,240,0.65); padding: 0.35rem 0; }
+.obj-list li::before {
+    content: ''; width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='8' cy='8' r='7' fill='rgba(139,92,246,0.2)' stroke='rgba(139,92,246,0.5)' stroke-width='1'/%3E%3Cpath d='M5 8l2 2 4-4' stroke='%238B5CF6' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+.obj-card-c .obj-list li::before {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='8' cy='8' r='7' fill='rgba(6,182,212,0.15)' stroke='rgba(6,182,212,0.5)' stroke-width='1'/%3E%3Cpath d='M5 8l2 2 4-4' stroke='%2306B6D4' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+/* ── SERVICE CARDS ── */
+.svc-card {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    transition: all 0.35s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+@media (min-width: 768px) {
+    .svc-card { padding: 2rem; }
+}
+
+.svc-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(139,92,246,0.25);
+    background: rgba(139,92,246,0.04);
+    box-shadow: 0 16px 40px rgba(139,92,246,0.1);
+}
+
+.svc-icon { width: 48px; height: 48px; border-radius: 0.875rem; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; margin-bottom: 1.25rem; }
+.svc-title { font-family: 'Clash Display', 'Space Grotesk', sans-serif; font-size: 1.05rem; font-weight: 600; color: white; margin-bottom: 0.5rem; }
+.svc-desc { font-size: 0.82rem; color: rgba(232,232,240,0.45); line-height: 1.55; margin-bottom: 1.25rem; }
+.svc-link { font-size: 0.8rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; transition: gap 0.2s; }
+.svc-link:hover { gap: 0.55rem; }
+
+/* ── PROCESS STEPS ── */
+.process-step { text-align: center; position: relative; }
+
+.step-num {
+    width: 60px; height: 60px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Clash Display', 'Space Grotesk', sans-serif;
+    font-size: 1.25rem; font-weight: 700; margin: 0 auto 1.25rem;
+    border: 2px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); color: white;
+    position: relative; transition: all 0.3s ease;
+}
+
+@media (min-width: 768px) {
+    .step-num { width: 72px; height: 72px; font-size: 1.5rem; }
+}
+
+.process-step:hover .step-num {
+    border-color: rgba(139,92,246,0.5); background: rgba(139,92,246,0.1);
+    box-shadow: 0 0 20px rgba(139,92,246,0.25); color: #A78BFA;
+}
+
+.step-num::after {
+    content: ''; position: absolute; inset: -6px; border-radius: 50%;
+    border: 1px dashed rgba(139,92,246,0.2); animation: rotateSlow 12s linear infinite;
+}
+
+@keyframes rotateSlow { to { transform: rotate(360deg); } }
+
+.step-line {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(139,92,246,0.3), rgba(6,182,212,0.2));
+    z-index: 0;
+}
+
+@media (min-width: 768px) {
+    .step-line { top: 36px; }
+}
+
+.step-title { font-family: 'Clash Display', 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700; color: white; margin-bottom: 0.4rem; }
+.step-desc { font-size: 0.8rem; color: rgba(232,232,240,0.4); line-height: 1.55; padding: 0 1rem; }
+
+/* ── TESTIMONIALS ── */
+.testi-card { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06); border-radius: 1.25rem; padding: 1.75rem; transition: all 0.3s ease; }
+.testi-card:hover { border-color: rgba(139,92,246,0.2); background: rgba(139,92,246,0.04); transform: translateY(-3px); }
+.testi-stars { color: #FBBF24; font-size: 0.75rem; margin-bottom: 1rem; }
+.testi-text { font-size: 0.875rem; color: rgba(232,232,240,0.6); line-height: 1.65; font-style: italic; margin-bottom: 1.25rem; }
+.testi-author { display: flex; align-items: center; gap: 0.75rem; }
+.testi-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: white; flex-shrink: 0; }
+.testi-name { font-size: 0.85rem; font-weight: 700; color: rgba(232,232,240,0.9); }
+.testi-role { font-size: 0.72rem; color: rgba(232,232,240,0.35); }
+
+/* ── CTA FINAL ── */
+.cta-wrap {
+    background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(6,182,212,0.08));
+    border: 1px solid rgba(139,92,246,0.2);
+    border-radius: 1.5rem;
+    padding: 3rem 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+    .cta-wrap { border-radius: 2rem; padding: 5rem 2rem; }
+}
+
+.cta-wrap::before, .cta-wrap::after {
+    content: ''; position: absolute; pointer-events: none;
+}
+.cta-wrap::before { top: -100px; left: -100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(139,92,246,0.15), transparent 60%); }
+.cta-wrap::after { bottom: -100px; right: -100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(6,182,212,0.1), transparent 60%); }
+
+/* ── ANIMATIONS ── */
+.reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+.hero-tag { animation: fadeUp 0.6s ease forwards; opacity: 0; }
+.hero-title { animation: fadeUp 0.6s ease 0.15s forwards; opacity: 0; }
+.hero-sub { animation: fadeUp 0.6s ease 0.3s forwards; opacity: 0; }
+.hero-btns { animation: fadeUp 0.6s ease 0.45s forwards; opacity: 0; }
+.hero-metrics { animation: fadeUp 0.6s ease 0.6s forwards; opacity: 0; }
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<div class="home-dark-wrap">
+
+<section id="home-hero">
+    <canvas id="globe-canvas"></canvas>
+    <div class="hero-noise"></div>
+
+    <div class="hero-content-wrap">
+        <div class="hero-tag">Marketplace Freelance · Bénin & Afrique de l'Ouest</div>
+
+        <h1 class="hero-title">
+            Connectez-vous aux<br>
+            <span class="word-violet">meilleurs talents</span><br>
+            <span class="word-outline">digitaux</span>
+        </h1>
+
+        <p class="hero-sub">
+            SynergyCraft connecte les entrepreneurs ambitieux aux freelancers vérifiés pour transformer leurs idées en <strong>business rentable</strong>. Paiement Mobile Money inclus.
+        </p>
+
+        <div class="hero-btns">
+            <a href="{% url 'register' %}?type=client" class="btn-glow btn-glow-primary">
+                <i class="fas fa-search"></i> Trouver un expert
+            </a>
+            <a href="{% url 'register' %}?type=freelancer" class="btn-glow btn-glow-ghost">
+                <i class="fas fa-laptop-code"></i> Devenir Freelance
+            </a>
+        </div>
+
+        <div class="hero-metrics">
+            <div>
+                <span class="metric-val" data-count="200">0</span>
+                <span class="metric-label">Projets réalisés</span>
+            </div>
+            <div>
+                <span class="metric-val">100%</span>
+                <span class="metric-label">Talents vérifiés</span>
+            </div>
+            <div>
+                <span class="metric-val">J+1</span>
+                <span class="metric-label">Paiement garanti</span>
+            </div>
+            <div>
+                <span class="metric-val">24/7</span>
+                <span class="metric-label">Support dédié</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="scroll-hint hidden md:flex">
+        <div class="scroll-hint-line"></div>
+        Scroll
+    </div>
+</section>
+
+<section class="dark-section py-16 lg:py-24">
+    <div class="section-glow-v" style="top:-200px;left:-200px;"></div>
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="text-center mb-12 lg:mb-16 reveal">
+            <div class="eyebrow eyebrow-v">Votre objectif</div>
+            <h2 class="section-title">Quel est votre <span style="background:var(--ng);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">objectif</span> aujourd'hui ?</h2>
+            <p class="section-subtitle">Que vous soyez entrepreneur ou freelancer, SynergyCraft est fait pour vous.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <div class="obj-card obj-card-v reveal reveal-delay-1">
+                <div class="obj-icon obj-icon-v"><i class="fas fa-rocket"></i></div>
+                <h3 class="obj-title">Je veux <span style="color:#A78BFA;">lancer un projet</span></h3>
+                <p class="obj-desc">Vous avez une idée ? Trouvez le talent qui la transforme en réalité, sans risque et rapidement.</p>
+                <ul class="obj-list">
+                    <li>Accès aux meilleurs talents vérifiés</li>
+                    <li>Devis gratuits en 24h</li>
+                    <li>Satisfait ou remboursé</li>
+                </ul>
+                <a href="{% url 'register' %}?type=client" class="btn-glow btn-glow-primary" style="font-size:0.85rem;padding:0.65rem 1.5rem;width:100%;">
+                    Publier mon projet gratuitement
+                </a>
+            </div>
+
+            <div class="obj-card obj-card-c reveal reveal-delay-2">
+                <div class="obj-icon obj-icon-c"><i class="fas fa-coins"></i></div>
+                <h3 class="obj-title">Je veux <span style="color:#22D3EE;">gagner de l'argent</span></h3>
+                <p class="obj-desc">Vous avez du talent ? Rejoignez notre communauté et transformez vos compétences en revenus stables.</p>
+                <ul class="obj-list">
+                    <li>+1000 missions par mois</li>
+                    <li>Commission réduite (5%)</li>
+                    <li>Paiement sécurisé J+1</li>
+                </ul>
+                <a href="{% url 'register' %}?type=freelancer" class="btn-glow" style="font-size:0.85rem;padding:0.65rem 1.5rem;background:rgba(6,182,212,0.12);color:#22D3EE;border:1px solid rgba(6,182,212,0.3);width:100%;">
+                    Commencer à vendre
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="dark-section-alt py-16 lg:py-24">
+    <div class="section-glow-c" style="top:50%;right:-150px;transform:translateY(-50%);"></div>
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="text-center mb-12 lg:mb-16 reveal">
+            <div class="eyebrow eyebrow-c">Expertise</div>
+            <h2 class="section-title">Des solutions pour <span style="color:#22D3EE;">faire décoller</span> votre business</h2>
+            <p class="section-subtitle">On ne vous vend pas juste de la technique — on vous vend des résultats mesurables.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
+            <div class="svc-card reveal reveal-delay-1">
+                <div class="svc-icon" style="background:rgba(139,92,246,0.12);color:#A78BFA;">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <h3 class="svc-title">Design qui Convertit</h3>
+                <p class="svc-desc">Une identité visuelle qui capte l'attention et inspire confiance instantanément.</p>
+                <a href="{% url 'catalogue' %}" class="svc-link" style="color:#A78BFA;">
+                    Voir les designers <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="svc-card reveal reveal-delay-2">
+                <div class="svc-icon" style="background:rgba(6,182,212,0.1);color:#22D3EE;">
+                    <i class="fas fa-laptop-code"></i>
+                </div>
+                <h3 class="svc-title">Sites Haute Performance</h3>
+                <p class="svc-desc">Rapide, sécurisé et optimisé pour transformer les visiteurs en clients.</p>
+                <a href="{% url 'catalogue' %}" class="svc-link" style="color:#22D3EE;">
+                    Voir les développeurs <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="svc-card reveal reveal-delay-3">
+                <div class="svc-icon" style="background:rgba(245,158,11,0.1);color:#FBBF24;">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 class="svc-title">Marketing Ciblé</h3>
+                <p class="svc-desc">Touchez exactement votre cible et maximisez votre retour sur investissement.</p>
+                <a href="{% url 'catalogue' %}" class="svc-link" style="color:#FBBF24;">
+                    Voir les marketeurs <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="svc-card reveal reveal-delay-4">
+                <div class="svc-icon" style="background:rgba(236,72,153,0.1);color:#F472B6;">
+                    <i class="fas fa-pen-nib"></i>
+                </div>
+                <h3 class="svc-title">Contenu & Copywriting</h3>
+                <p class="svc-desc">Les mots qui convainquent, vendent et fidélisent votre audience.</p>
+                <a href="{% url 'catalogue' %}" class="svc-link" style="color:#F472B6;">
+                    Voir les rédacteurs <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="dark-section py-16 lg:py-24">
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="text-center mb-12 lg:mb-16 reveal">
+            <div class="eyebrow eyebrow-v">Simple & rapide</div>
+            <h2 class="section-title">Comment réaliser <span style="background:var(--ng);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">votre projet ?</span></h2>
+        </div>
+
+        <div class="relative grid grid-cols-1 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
+            <div class="hidden md:block absolute top-[36px] left-[12.5%] right-[12.5%] h-px" style="background:linear-gradient(90deg,rgba(139,92,246,0.4),rgba(6,182,212,0.3));z-index:0;"></div>
+
+            <div class="process-step reveal reveal-delay-1" style="position:relative;z-index:1;">
+                <div class="step-num">1</div>
+                <h3 class="step-title">Publiez</h3>
+                <p class="step-desc">Décrivez votre besoin gratuitement en quelques clics.</p>
+            </div>
+            <div class="process-step reveal reveal-delay-2" style="position:relative;z-index:1;">
+                <div class="step-num">2</div>
+                <h3 class="step-title">Recevez</h3>
+                <p class="step-desc">Des devis de freelancers qualifiés sous 24h.</p>
+            </div>
+            <div class="process-step reveal reveal-delay-3" style="position:relative;z-index:1;">
+                <div class="step-num">3</div>
+                <h3 class="step-title">Choisissez</h3>
+                <p class="step-desc">Comparez les profils et sélectionnez le meilleur expert.</p>
+            </div>
+            <div class="process-step reveal reveal-delay-4" style="position:relative;z-index:1;">
+                <div class="step-num">4</div>
+                <h3 class="step-title">Réussissez</h3>
+                <p class="step-desc">Payez une fois le travail validé. Satisfaction garantie.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="dark-section-alt py-16 lg:py-24">
+    <div class="section-glow-v" style="bottom:-200px;right:-200px;"></div>
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="text-center mb-12 lg:mb-16 reveal">
+            <div class="eyebrow eyebrow-c">Témoignages</div>
+            <h2 class="section-title">Ce que disent <span style="color:#22D3EE;">nos utilisateurs</span></h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <div class="testi-card reveal reveal-delay-1">
+                <div class="testi-stars">★★★★★</div>
+                <p class="testi-text">"J'ai posté ma mission le lundi, mercredi j'avais 3 devis, vendredi le travail commençait. Efficacité redoutable."</p>
+                <div class="testi-author">
+                    <div class="testi-avatar" style="background:linear-gradient(135deg,#8B5CF6,#06B6D4);">MK</div>
+                    <div>
+                        <div class="testi-name">Marie Kessler</div>
+                        <div class="testi-role">CEO BioStart</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="testi-card reveal reveal-delay-2">
+                <div class="testi-stars">★★★★★</div>
+                <p class="testi-text">"SynergyCraft m'a permis de doubler mon CA cette année sans avoir à chasser les clients. La plateforme fait le travail."</p>
+                <div class="testi-author">
+                    <div class="testi-avatar" style="background:linear-gradient(135deg,#06B6D4,#8B5CF6);">JP</div>
+                    <div>
+                        <div class="testi-name">Jean Patel</div>
+                        <div class="testi-role">Développeur Fullstack</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="testi-card reveal reveal-delay-3">
+                <div class="testi-stars">★★★★★</div>
+                <p class="testi-text">"Le système de paiement sécurisé me rassure énormément. Je sais que je suis payé si le travail est fait."</p>
+                <div class="testi-author">
+                    <div class="testi-avatar" style="background:linear-gradient(135deg,#F59E0B,#EF4444);">SL</div>
+                    <div>
+                        <div class="testi-name">Sophie Laurent</div>
+                        <div class="testi-role">Directrice Marketing</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="dark-section py-16 lg:py-24">
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="cta-wrap reveal">
+            <div class="eyebrow eyebrow-v" style="justify-content:center;position:relative;z-index:1;">Rejoignez-nous</div>
+            <h2 class="section-title" style="margin-bottom:1rem;position:relative;z-index:1;">
+                Prêt à passer au <span style="background:var(--ng);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">niveau supérieur ?</span>
+            </h2>
+            <p style="font-size:1rem;color:rgba(232,232,240,0.5);max-width:480px;margin:0 auto 2.5rem;line-height:1.65;position:relative;z-index:1;">
+                Ne laissez pas vos idées dormir. Des freelancers prêts à transformer votre vision attendent votre projet.
+            </p>
+            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;">
+                <a href="{% url 'register' %}?type=client" class="btn-glow btn-glow-primary">
+                    Publier un projet
+                </a>
+                <a href="{% url 'register' %}?type=freelancer" class="btn-glow btn-glow-ghost">
+                    Je suis Freelance
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+</div><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ── GLOBE THREE.JS OPTIMISÉ POUR MOBILE ───────────────────────────────────────
+(function() {
+    const canvas = document.getElementById('globe-canvas');
+    if (!canvas || typeof THREE === 'undefined') return;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 0);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0, 3.2);
+
+    const geo = new THREE.SphereGeometry(1, 64, 64);
+    const wireGeo = new THREE.SphereGeometry(1.01, 32, 32);
+    const wireMat = new THREE.MeshBasicMaterial({ color: 0x8B5CF6, wireframe: true, transparent: true, opacity: 0.08 });
+    const wire = new THREE.Mesh(wireGeo, wireMat);
+    scene.add(wire);
+
+    const mat = new THREE.MeshPhongMaterial({
+        color: 0x050510, emissive: 0x0A0520, specular: 0x8B5CF6,
+        shininess: 30, transparent: true, opacity: 0.7, wireframe: false,
+    });
+    const globe = new THREE.Mesh(geo, mat);
+    scene.add(globe);
+
+    // PERFORMANCE MOBILE : Moins de points si l'écran est petit
+    const isMobile = window.innerWidth < 768;
+    const dotCount = isMobile ? 1200 : 2500;
+    
+    const dotGeo = new THREE.BufferGeometry();
+    const positions = new Float32Array(dotCount * 3);
+    const colors = new Float32Array(dotCount * 3);
+
+    for (let i = 0; i < dotCount; i++) {
+        const phi = Math.acos(-1 + (2 * i) / dotCount);
+        const theta = Math.sqrt(dotCount * Math.PI) * phi;
+        const r = 1.015;
+        positions[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = r * Math.cos(phi);
+        positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+
+        const t = Math.random();
+        colors[i * 3]     = 0.54 * (1 - t) + 0.02 * t;
+        colors[i * 3 + 1] = 0.31 * (1 - t) + 0.72 * t;
+        colors[i * 3 + 2] = 0.96 * (1 - t) + 0.84 * t;
+    }
+
+    dotGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    dotGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const dotMat = new THREE.PointsMaterial({ size: 0.012, vertexColors: true, transparent: true, opacity: 0.85 });
+    const dots = new THREE.Points(dotGeo, dotMat);
+    scene.add(dots);
+
+    const ringGeo = new THREE.RingGeometry(1.05, 1.08, 64);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x8B5CF6, side: THREE.DoubleSide, transparent: true, opacity: 0.15 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI / 2;
+    scene.add(ring);
+
+    const ring2Geo = new THREE.RingGeometry(1.15, 1.17, 64);
+    const ring2Mat = new THREE.MeshBasicMaterial({ color: 0x06B6D4, side: THREE.DoubleSide, transparent: true, opacity: 0.08 });
+    const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+    ring2.rotation.x = Math.PI / 4;
+    scene.add(ring2);
+
+    const ambientLight = new THREE.AmbientLight(0x1a0a2e, 2);
+    scene.add(ambientLight);
+
+    const violetLight = new THREE.PointLight(0x8B5CF6, 3, 8);
+    violetLight.position.set(-2, 1, 2);
+    scene.add(violetLight);
+
+    const cyanLight = new THREE.PointLight(0x06B6D4, 2, 8);
+    cyanLight.position.set(2, -1, 2);
+    scene.add(cyanLight);
+
+    let mouseX = 0, mouseY = 0, targetX = 0, targetY = 0;
+
+    // Interaction souris uniquement sur desktop
+    if (!isMobile) {
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 0.5;
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 0.3;
+        });
+    }
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    let time = 0;
+    function animate() {
+        requestAnimationFrame(animate);
+        time += 0.005;
+        targetX += (mouseX - targetX) * 0.04;
+        targetY += (mouseY - targetY) * 0.04;
+
+        globe.rotation.y = time * 0.15 + targetX;
+        globe.rotation.x = targetY * 0.5;
+        dots.rotation.y = time * 0.15 + targetX;
+        dots.rotation.x = targetY * 0.5;
+        wire.rotation.y = time * 0.12 + targetX;
+        wire.rotation.x = targetY * 0.5;
+        ring.rotation.z = time * 0.2;
+        ring2.rotation.y = -time * 0.15;
+
+        const pulse = Math.sin(time * 1.5) * 0.5 + 0.5;
+        violetLight.intensity = 2.5 + pulse * 1.5;
+        cyanLight.intensity = 1.5 + (1 - pulse) * 1.5;
+        dotMat.opacity = 0.6 + pulse * 0.3;
+
+        renderer.render(scene, camera);
+    }
+    animate();
+})();
+
+// ── COUNTER ANIMATION ────────────────────────────────────────────────────────
+function animateCounter(el, target, duration) {
+    let start = 0;
+    const step = target / (duration / 16);
+    const timer = setInterval(() => {
+        start += step;
+        if (start >= target) { el.textContent = target + '+'; clearInterval(timer); return; }
+        el.textContent = Math.floor(start) + '+';
+    }, 16);
+}
+
+// ── SCROLL REVEAL ────────────────────────────────────────────────────────────
+const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            revealObserver.unobserve(entry.target);
+
+            const counter = entry.target.querySelector('[data-count]');
+            if (counter) animateCounter(counter, parseInt(counter.dataset.count), 1500);
+        }
+    });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+document.querySelectorAll('[data-count]').forEach(el => {
+    animateCounter(el, parseInt(el.dataset.count), 2000);
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-6 py-12 animate-in fade-in duration-700">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-4">
+        <div>
+            <h1 class="text-4xl font-extrabold text-white tracking-tight flex items-center gap-3">
+                <i class="fas fa-briefcase text-indigo-500"></i> Mes Offres de Services
+            </h1>
+            <p class="text-slate-400 mt-2 text-lg">Gérez vos services existants ou proposez de nouvelles prestations sur le Hub.</p>
+        </div>
+        <button onclick="document.getElementById('addServiceModal').showModal()" 
+                class="btn btn-primary shadow-lg shadow-indigo-500/20 rounded-2xl px-6 py-4 font-bold hover:scale-[1.02] transition-all">
+            <i class="fas fa-plus mr-2 text-sm"></i>
+            Nouvelle offre
+        </button>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert mb-6 {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %} shadow-lg rounded-2xl border border-white/10">
+                <i class="fas fa-info-circle text-lg"></i>
+                <span class="font-semibold">{{ message }}</span>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Stats -->
+    {% if services %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 max-w-xl">
+        <div class="glass-card rounded-2xl p-6 flex items-center justify-between">
+            <div>
+                <span class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Total des offres</span>
+                <h4 class="text-white text-3xl font-extrabold mt-2">{{ services.count }}</h4>
+            </div>
+            <div class="w-12 h-12 bg-indigo-500/20 rounded-xl flex items-center justify-center text-indigo-400 text-xl">
+                <i class="fas fa-folder"></i>
+            </div>
+        </div>
+        <div class="glass-card rounded-2xl p-6 flex items-center justify-between">
+            <div>
+                <span class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Prix moyen</span>
+                <h4 class="text-white text-3xl font-extrabold mt-2">
+                    {% if services.count > 0 %}
+                        {% widthratio services|length services.count 1 %} FCFA
+                    {% else %}0 FCFA{% endif %}
+                </h4>
+            </div>
+            <div class="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-400 text-xl">
+                <i class="fas fa-tag"></i>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Liste des services -->
+    {% if services %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for service in services %}
+                <div class="glass-card rounded-3xl p-6 hover:border-indigo-500/40 hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] transition-all duration-300 relative overflow-hidden group">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="badge badge-lg bg-indigo-500/10 border-indigo-500/30 text-indigo-300 font-semibold px-3 py-3">{{ service.get_category_display }}</span>
+                        <span class="text-2xl font-extrabold text-white">{{ service.price }} FCFA</span>
+                    </div>
+                    
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors">{{ service.title }}</h3>
+                    <p class="text-slate-400 text-sm mb-6 leading-relaxed line-clamp-3">{{ service.description }}</p>
+                    
+                    <div class="flex items-center justify-between text-sm text-slate-500 mb-6 pt-4 border-t border-white/5">
+                        <span class="flex items-center gap-1.5"><i class="fas fa-clock text-xs"></i> {{ service.delivery_time_days }} jours</span>
+                        <span class="flex items-center gap-1.5"><i class="fas fa-calendar-alt text-xs"></i> {{ service.created_at|date:"d/m/Y" }}</span>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <a href="{% url 'modifier_service' service.pk %}" class="btn btn-sm btn-outline flex-1 rounded-xl font-bold hover:bg-indigo-500 hover:border-indigo-500 text-white transition-all py-2 h-auto">
+                            <i class="fas fa-edit mr-1"></i> Modifier
+                        </a>
+                        <a href="{% url 'supprimer_service' service.pk %}" class="btn btn-sm btn-outline btn-error flex-1 rounded-xl font-bold hover:bg-red-500 hover:border-red-500 text-white transition-all py-2 h-auto" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce service?');">
+                            <i class="fas fa-trash mr-1"></i> Supprimer
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- État vide -->
+        <div class="glass-card rounded-3xl py-16 text-center">
+            <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 mx-auto border border-white/10">
+                <i class="fas fa-briefcase text-3xl text-slate-500"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">Aucune offre active</h3>
+            <p class="text-slate-400 max-w-md mx-auto mb-6">Proposez votre premier service pour commencer à recevoir des commandes des clients.</p>
+            <button onclick="document.getElementById('addServiceModal').showModal()" 
+                    class="btn btn-primary rounded-xl px-8 shadow-lg shadow-indigo-500/20">
+                <i class="fas fa-plus mr-2"></i> Créer une offre
+            </button>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal: Ajouter un service -->
+<dialog id="addServiceModal" class="modal modal-bottom sm:modal-middle animate-fade-in">
+    <div class="modal-box bg-[#1e293b] border border-slate-800 text-white rounded-3xl max-w-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="font-extrabold text-2xl flex items-center gap-2">
+                <i class="fas fa-plus-circle text-indigo-500"></i> Nouvelle Prestation
+            </h3>
+            <button type="button" class="btn btn-sm btn-circle btn-ghost" onclick="document.getElementById('addServiceModal').close()">✕</button>
+        </div>
+        
+        <form method="POST" action="{% url 'mes_offres' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Titre -->
+                <div class="form-control md:col-span-2">
+                    <label class="label">
+                        <span class="label-text text-slate-300 font-semibold">Titre du service *</span>
+                    </label>
+                    <input type="text" name="title" required placeholder="Ex: Développement de site e-commerce Next.js"
+                           class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                </div>
+                
+                <!-- Catégorie -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text text-slate-300 font-semibold">Catégorie *</span>
+                    </label>
+                    <select name="category" class="select select-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500" required>
+                        <option value="web">Développement Web</option>
+                        <option value="design">Design Graphique</option>
+                        <option value="marketing">Marketing Digital</option>
+                        <option value="branding">Branding</option>
+                        <option value="other">Autres prestations</option>
+                    </select>
+                </div>
+                
+                <!-- Prix -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text text-slate-300 font-semibold">Prix ( FCFA) *</span>
+                    </label>
+                    <input type="number" name="price" required min="1" step="0.01" placeholder="250.00"
+                           class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                </div>
+                
+                <!-- Délai de livraison -->
+                <div class="form-control md:col-span-2">
+                    <label class="label">
+                        <span class="label-text text-slate-300 font-semibold">Délai estimé (jours) *</span>
+                    </label>
+                    <input type="number" name="delivery_time_days" required min="1" value="7"
+                           class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                </div>
+                
+                <!-- Description -->
+                <div class="form-control md:col-span-2">
+                    <label class="label">
+                        <span class="label-text text-slate-300 font-semibold">Description détaillée *</span>
+                    </label>
+                    <textarea name="description" required rows="4" placeholder="Décrivez en détail les livrables, technologies et étapes du projet..."
+                              class="textarea textarea-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500"></textarea>
+                </div>
+            </div>
+            
+            <div class="modal-action mt-8">
+                <button type="button" class="btn btn-ghost text-slate-400 rounded-xl" onclick="document.getElementById('addServiceModal').close()">
+                    Annuler
+                </button>
+                <button type="submit" class="btn btn-primary rounded-xl px-8 shadow-lg shadow-indigo-500/20">
+                    <i class="fas fa-check mr-2"></i> Publier l'offre
+                </button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<!-- Modal: Modifier un service -->
+<dialog id="editServiceModal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box bg-[#1e293b] border border-slate-800 text-white rounded-3xl max-w-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="font-extrabold text-2xl flex items-center gap-2">
+                <i class="fas fa-edit text-indigo-500"></i> Modifier mon Offre de Service
+            </h3>
+            <button type="button" class="btn btn-sm btn-circle btn-ghost" onclick="document.getElementById('editServiceModal').close()">✕</button>
+        </div>
+        
+        {% if service_a_modifier %}
+        <form method="POST" action="{% url 'modifier_service' service_a_modifier.id %}">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Titre -->
+                <div class="form-control md:col-span-2">
+                    <label class="label">
+                        <span class="label-text text-slate-300 font-semibold">Titre du service *</span>
+                    </label>
+                    <input type="text" name="title" value="{{ service_a_modifier.title }}" required 
+                           class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                </div>
+
+                <!-- Catégorie -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text text-slate-300 font-semibold">Catégorie *</span>
+                    </label>
+                    <select name="category" required class="select select-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                        <option value="web" {% if service_a_modifier.category == 'web' %}selected{% endif %}>Développement Web</option>
+                        <option value="design" {% if service_a_modifier.category == 'design' %}selected{% endif %}>Design Graphique</option>
+                        <option value="marketing" {% if service_a_modifier.category == 'marketing' %}selected{% endif %}>Marketing Digital</option>
+                        <option value="branding" {% if service_a_modifier.category == 'branding' %}selected{% endif %}>Branding</option>
+                        <option value="other" {% if service_a_modifier.category == 'other' %}selected{% endif %}>Autres prestations</option>
+                    </select>
+                </div>
+
+                <!-- Prix -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text text-slate-300 font-semibold">Prix ( FCFA) *</span>
+                    </label>
+                    <input type="number" name="price" value="{{ service_a_modifier.price }}" required min="1" step="0.01"
+                           class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                </div>
+
+                <!-- Durée de livraison -->
+                <div class="form-control md:col-span-2">
+                    <label class="label">
+                        <span class="label-text text-slate-300 font-semibold">Temps de livraison estimé (jours) *</span>
+                    </label>
+                    <input type="number" name="delivery_time_days" value="{{ service_a_modifier.delivery_time_days }}" required min="1"
+                           class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                </div>
+
+                <!-- Description -->
+                <div class="form-control md:col-span-2">
+                    <label class="label">
+                        <span class="label-text text-slate-300 font-semibold">Description du service *</span>
+                    </label>
+                    <textarea name="description" required rows="4" 
+                              class="textarea textarea-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">{{ service_a_modifier.description }}</textarea>
+                </div>
+            </div>
+            
+            <div class="modal-action mt-8">
+                <button type="button" class="btn btn-ghost text-slate-400 rounded-xl" onclick="document.getElementById('editServiceModal').close()">
+                    Annuler
+                </button>
+                <button type="submit" class="btn btn-primary rounded-xl px-8 shadow-lg shadow-indigo-500/20">
+                    <i class="fas fa-save mr-2"></i> Enregistrer les modifications
+                </button>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</dialog>
+
+{% if service_a_modifier %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const modal = document.getElementById('editServiceModal');
+        if (modal) {
+            modal.showModal();
+        }
+    });
+</script>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,1044 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .cat-hero {
+        background: linear-gradient(135deg, rgba(139,92,246,0.06) 0%, rgba(6,182,212,0.04) 100%);
+        border-bottom: 1px solid rgba(139,92,246,0.1);
+        padding: 3.5rem 0 0;
+    }
+
+    .cat-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+
+    .cat-eyebrow::before {
+        content: '';
+        display: inline-block;
+        width: 20px;
+        height: 2px;
+        background: var(--gradient);
+        border-radius: 1px;
+    }
+
+    .cat-title {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        margin-bottom: 1rem;
+    }
+
+    .cat-subtitle {
+        font-size: 1.05rem;
+        color: #6B7280;
+        max-width: 500px;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+
+    [data-theme="dark"] .cat-subtitle { color: #9CA3AF; }
+
+    .cat-stats {
+        display: flex;
+        gap: 2.5rem;
+        padding: 1.5rem 0;
+        border-top: 1px solid rgba(139,92,246,0.1);
+        margin-top: 0.5rem;
+    }
+
+    .cat-stat-num {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 700;
+        display: block;
+        line-height: 1;
+        margin-bottom: 0.2rem;
+    }
+
+    .cat-stat-label {
+        font-size: 0.75rem;
+        color: #9CA3AF;
+        letter-spacing: 0.04em;
+    }
+
+    /* Quick filter pills */
+    .pill-row {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        padding: 1.25rem 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .pill-row::-webkit-scrollbar { display: none; }
+
+    .sc-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 1rem;
+        border-radius: 100px;
+        font-size: 0.82rem;
+        font-weight: 500;
+        cursor: pointer;
+        border: 1px solid rgba(139,92,246,0.2);
+        background: transparent;
+        color: #6B7280;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .sc-pill:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: rgba(139,92,246,0.06);
+    }
+
+    .sc-pill.active {
+        background: var(--gradient);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 12px rgba(139,92,246,0.3);
+    }
+
+    [data-theme="dark"] .sc-pill { color: #9CA3AF; border-color: rgba(167,139,250,0.2); }
+    [data-theme="dark"] .sc-pill:hover { color: var(--primary); background: rgba(167,139,250,0.1); }
+
+    /* Layout */
+    .cat-layout {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 2rem;
+        padding: 2rem 0 4rem;
+        align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+        .cat-layout { grid-template-columns: 1fr; }
+        .cat-sidebar { display: none; }
+    }
+
+    /* Sidebar */
+    .cat-sidebar {
+        position: sticky;
+        top: 5rem;
+    }
+
+    .filter-card {
+        background: var(--light);
+        border: 1px solid rgba(139,92,246,0.1);
+        border-radius: 1rem;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    [data-theme="dark"] .filter-card {
+        background: #1e293b;
+        border-color: rgba(255,255,255,0.08);
+    }
+
+    .filter-block-title {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #9CA3AF;
+        margin-bottom: 0.875rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .filter-opt {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.45rem 0.5rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background 0.15s;
+        gap: 0.5rem;
+    }
+
+    .filter-opt:hover { background: rgba(139,92,246,0.06); }
+    [data-theme="dark"] .filter-opt:hover { background: rgba(167,139,250,0.08); }
+
+    .filter-opt input[type="checkbox"],
+    .filter-opt input[type="radio"] {
+        accent-color: var(--primary);
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+
+    .filter-opt-label {
+        font-size: 0.875rem;
+        flex: 1;
+        color: #4B5563;
+    }
+
+    [data-theme="dark"] .filter-opt-label { color: #CBD5E1; }
+
+    .filter-count-badge {
+        font-size: 0.68rem;
+        padding: 0.1rem 0.45rem;
+        border-radius: 100px;
+        background: rgba(139,92,246,0.1);
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    [data-theme="dark"] .filter-count-badge {
+        background: rgba(167,139,250,0.15);
+        color: #A78BFA;
+    }
+
+    .price-range-input {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(139,92,246,0.15);
+        outline: none;
+        margin: 0.75rem 0;
+    }
+
+    .price-range-input::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--gradient);
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(139,92,246,0.4);
+        transition: transform 0.15s;
+    }
+
+    .price-range-input::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+    .price-val {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 0.9rem;
+    }
+
+    .sidebar-cta {
+        background: var(--gradient);
+        border-radius: 1rem;
+        padding: 1.25rem;
+    }
+
+    .sidebar-cta h4 {
+        color: white;
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.35rem;
+    }
+
+    .sidebar-cta p {
+        color: rgba(255,255,255,0.8);
+        font-size: 0.78rem;
+        line-height: 1.4;
+        margin-bottom: 0.875rem;
+    }
+
+    .sidebar-cta a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: white;
+        color: var(--primary);
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 0.45rem 1rem;
+        border-radius: 100px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .sidebar-cta a:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+    /* Toolbar */
+    .cat-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .cat-search {
+        flex: 1;
+        min-width: 180px;
+        position: relative;
+    }
+
+    .cat-search i {
+        position: absolute;
+        left: 0.875rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9CA3AF;
+        font-size: 0.85rem;
+        pointer-events: none;
+    }
+
+    .cat-search input {
+        width: 100%;
+        padding: 0.6rem 1rem 0.6rem 2.4rem;
+        border: 1px solid rgba(139,92,246,0.2);
+        border-radius: 0.625rem;
+        background: var(--light);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        color: var(--dark);
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .cat-search input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
+    }
+
+    .cat-search input::placeholder { color: #9CA3AF; }
+
+    [data-theme="dark"] .cat-search input {
+        background: #1e293b;
+        color: #e2e8f0;
+        border-color: rgba(255,255,255,0.1);
+    }
+
+    .cat-sort {
+        padding: 0.6rem 0.875rem;
+        border: 1px solid rgba(139,92,246,0.2);
+        border-radius: 0.625rem;
+        background: var(--light);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        color: var(--dark);
+        outline: none;
+        cursor: pointer;
+    }
+
+    [data-theme="dark"] .cat-sort {
+        background: #1e293b;
+        color: #e2e8f0;
+        border-color: rgba(255,255,255,0.1);
+    }
+
+    .cat-results {
+        font-size: 0.8rem;
+        color: #9CA3AF;
+        white-space: nowrap;
+    }
+
+    .cat-results strong { color: var(--dark); }
+    [data-theme="dark"] .cat-results strong { color: #e2e8f0; }
+
+    /* Grid */
+    .cat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+        gap: 1.25rem;
+    }
+
+    /* Card */
+    .sc-card {
+        background: var(--light);
+        border: 1px solid rgba(139,92,246,0.1);
+        border-radius: 1rem;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.2s;
+    }
+
+    .sc-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(139,92,246,0.12);
+        border-color: rgba(139,92,246,0.3);
+    }
+
+    [data-theme="dark"] .sc-card {
+        background: #1e293b;
+        border-color: rgba(255,255,255,0.07);
+    }
+
+    [data-theme="dark"] .sc-card:hover {
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        border-color: rgba(167,139,250,0.3);
+    }
+
+    .sc-card-img-wrap {
+        position: relative;
+        height: 175px;
+        overflow: hidden;
+        background: rgba(139,92,246,0.05);
+    }
+
+    .sc-card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .sc-card:hover .sc-card-img { transform: scale(1.05); }
+
+    .sc-card-badge {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.25rem 0.6rem;
+        border-radius: 100px;
+        background: white;
+        color: var(--primary);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    [data-theme="dark"] .sc-card-badge {
+        background: #0f172a;
+        color: #A78BFA;
+    }
+
+    .sc-card-fav {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #9CA3AF;
+        font-size: 0.78rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.2s;
+    }
+
+    .sc-card-fav:hover { color: #EF4444; transform: scale(1.1); }
+    .sc-card-fav.active { color: #EF4444; }
+
+    [data-theme="dark"] .sc-card-fav {
+        background: #0f172a;
+        color: #64748B;
+    }
+
+    .sc-card-body {
+        padding: 1.1rem 1.25rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        gap: 0.5rem;
+    }
+
+    .sc-price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+    }
+
+    .sc-price {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    [data-theme="dark"] .sc-price { color: #F1F5F9; }
+
+    .sc-delivery {
+        font-size: 0.72rem;
+        color: #9CA3AF;
+    }
+
+    .sc-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--dark);
+        line-height: 1.35;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    [data-theme="dark"] .sc-title { color: #F1F5F9; }
+
+    .sc-desc {
+        font-size: 0.8rem;
+        color: #6B7280;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+    }
+
+    [data-theme="dark"] .sc-desc { color: #94A3B8; }
+
+    .sc-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 0.75rem;
+        margin-top: auto;
+        border-top: 1px solid rgba(139,92,246,0.08);
+    }
+
+    [data-theme="dark"] .sc-footer { border-top-color: rgba(255,255,255,0.06); }
+
+    .sc-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    [data-theme="dark"] .sc-rating { color: #F1F5F9; }
+    .sc-rating i { color: #F59E0B; font-size: 0.7rem; }
+
+    .sc-reviews {
+        font-size: 0.7rem;
+        color: #9CA3AF;
+        display: block;
+        margin-top: 0.1rem;
+    }
+
+    .sc-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 1rem;
+        background: var(--gradient);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(139,92,246,0.25);
+    }
+
+    .sc-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(139,92,246,0.35);
+    }
+
+    /* --- Client Offer Modal styles --- */
+    .sc-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .sc-modal-overlay.active {
+        display: flex;
+        opacity: 1;
+    }
+    .sc-modal {
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.25);
+        border-radius: 1.75rem;
+        width: 90%;
+        max-width: 600px;
+        padding: 2.25rem;
+        position: relative;
+        transform: scale(0.95);
+        transition: transform 0.3s ease;
+        color: white;
+    }
+    .sc-modal-overlay.active .sc-modal {
+        transform: scale(1);
+    }
+    .sc-modal-close {
+        position: absolute;
+        top: 1.25rem;
+        right: 1.25rem;
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 1.25rem;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    .sc-modal-close:hover { color: white; }
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    .form-group label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 0.5rem;
+    }
+    .form-control {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: white;
+        font-family: inherit;
+        outline: none;
+        transition: all 0.2s;
+    }
+    .form-control:focus {
+        border-color: rgba(139, 92, 246, 0.5);
+        background: rgba(255, 255, 255, 0.05);
+    }
+</style>
+
+<div>
+    <!-- HERO -->
+    <section class="cat-hero">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+                <div>
+                    <div class="cat-eyebrow">
+                        <i class="fas fa-store"></i> Catalogue
+                    </div>
+                    <h1 class="cat-title">
+                        Trouvez le <br>
+                        <span class="gradient-text">Service</span> qu'il<br>
+                        vous faut !
+                    </h1>
+                    <p class="cat-subtitle">
+                        Des services digitaux de qualité, livrés par des talents vérifiés au Bénin et en Afrique de l'Ouest.
+                    </p>
+                    <div style="margin-top: -1rem; margin-bottom: 2rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        {% if user.role == 'client' %}
+                            <button id="btnOpenOfferModal" style="display:inline-flex; align-items:center; gap:0.5rem; background:linear-gradient(135deg, #7c3aed, #06b6d4); color:white; font-weight:700; font-size:0.85rem; padding:0.75rem 1.5rem; border-radius:0.875rem; border:none; cursor:pointer; box-shadow:0 8px 24px rgba(124,58,237,0.3); transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+                                <i class="fas fa-plus"></i> Publier un besoin (Offre projet)
+                            </button>
+                        {% elif user.role == 'freelancer' %}
+                            <a href="{% url 'client_offers' %}" style="display:inline-flex; align-items:center; gap:0.5rem; background:linear-gradient(135deg, #818cf8, #7c3aed); color:white; font-weight:700; font-size:0.85rem; padding:0.75rem 1.5rem; border-radius:0.875rem; text-decoration:none; box-shadow:0 8px 24px rgba(99,102,241,0.3); transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+                                <i class="fas fa-bullhorn"></i> Voir les projets clients
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="cat-stats">
+                    <div>
+                        <span class="cat-stat-num gradient-text">48+</span>
+                        <span class="cat-stat-label">Services</span>
+                    </div>
+                    <div>
+                        <span class="cat-stat-num gradient-text">4.8★</span>
+                        <span class="cat-stat-label">Note moy.</span>
+                    </div>
+                    <div>
+                        <span class="cat-stat-num gradient-text">200+</span>
+                        <span class="cat-stat-label">Projets livrés</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pills -->
+            <div class="pill-row">
+                <button class="sc-pill active" data-cat="all">
+                    <i class="fas fa-th-large"></i> Tout voir
+                </button>
+                <button class="sc-pill" data-cat="Design Graphique">
+                    <i class="fas fa-palette"></i> Design
+                </button>
+                <button class="sc-pill" data-cat="Développement Web">
+                    <i class="fas fa-code"></i> Dev Web
+                </button>
+                <button class="sc-pill" data-cat="Marketing Digital">
+                    <i class="fas fa-chart-line"></i> Marketing
+                </button>
+                <button class="sc-pill" data-cat="SEO">
+                    <i class="fas fa-search"></i> SEO
+                </button>
+                <button class="sc-pill" data-cat="Branding">
+                    <i class="fas fa-gem"></i> Branding
+                </button>
+                <button class="sc-pill" data-cat="Rédaction">
+                    <i class="fas fa-pen-nib"></i> Rédaction
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- BODY -->
+    <div class="container mx-auto px-4">
+        <div class="cat-layout">
+
+            <!-- SIDEBAR -->
+            <aside class="cat-sidebar">
+
+                <div class="filter-card">
+                    <div class="filter-block-title">
+                        <span><i class="fas fa-filter mr-1"></i> Catégories</span>
+                        <button id="resetFilters" style="font-size:0.7rem;color:var(--primary);background:none;border:none;cursor:pointer;font-weight:600;">
+                            Réinitialiser
+                        </button>
+                    </div>
+                    <div>
+                        <label class="filter-opt">
+                            <input type="checkbox" class="category-filter" value="Design Graphique" checked>
+                            <span class="filter-opt-label">Design Graphique</span>
+                            <span class="filter-count-badge">12</span>
+                        </label>
+                        <label class="filter-opt">
+                            <input type="checkbox" class="category-filter" value="Développement Web" checked>
+                            <span class="filter-opt-label">Développement Web</span>
+                            <span class="filter-count-badge">8</span>
+                        </label>
+                        <label class="filter-opt">
+                            <input type="checkbox" class="category-filter" value="Marketing Digital" checked>
+                            <span class="filter-opt-label">Marketing Digital</span>
+                            <span class="filter-count-badge">10</span>
+                        </label>
+                        <label class="filter-opt">
+                            <input type="checkbox" class="category-filter" value="Branding" checked>
+                            <span class="filter-opt-label">Branding</span>
+                            <span class="filter-count-badge">6</span>
+                        </label>
+                        <label class="filter-opt">
+                            <input type="checkbox" class="category-filter" value="SEO" checked>
+                            <span class="filter-opt-label">SEO</span>
+                            <span class="filter-count-badge">5</span>
+                        </label>
+                        <label class="filter-opt">
+                            <input type="checkbox" class="category-filter" value="Maintenance" checked>
+                            <span class="filter-opt-label">Maintenance</span>
+                            <span class="filter-count-badge">4</span>
+                        </label>
+                        <label class="filter-opt">
+                            <input type="checkbox" class="category-filter" value="Rédaction" checked>
+                            <span class="filter-opt-label">Rédaction</span>
+                            <span class="filter-count-badge">3</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-card">
+                    <div class="filter-block-title">Budget maximum</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">
+                        <span style="font-size:0.78rem;color:#9CA3AF;">0 FCFA</span>
+                        <span class="price-val" id="priceDisplay">5 000 FCFA</span>
+                    </div>
+                    <input type="range" min="0" max="5000" value="5000" class="price-range-input" id="priceRange">
+                </div>
+
+                <div class="filter-card">
+                    <div class="filter-block-title">Délai de livraison</div>
+                    <label class="filter-opt">
+                        <input type="radio" name="delivery" class="delivery-filter" value="all" checked>
+                        <span class="filter-opt-label">Tous les délais</span>
+                    </label>
+                    <label class="filter-opt">
+                        <input type="radio" name="delivery" class="delivery-filter" value="express">
+                        <span class="filter-opt-label">Express (24–48h)</span>
+                        <span class="filter-count-badge" style="background:rgba(34,197,94,0.1);color:#16A34A;">Rapide</span>
+                    </label>
+                    <label class="filter-opt">
+                        <input type="radio" name="delivery" class="delivery-filter" value="standard">
+                        <span class="filter-opt-label">Standard (3–5 jours)</span>
+                    </label>
+                </div>
+
+                <div class="sidebar-cta">
+                    <h4>Besoin d'un devis ?</h4>
+                    <p>Décrivez votre projet et recevez des offres personnalisées sous 24h.</p>
+                    <a href="{% url 'quote' %}">
+                        Demander un devis <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+            </aside>
+
+            <!-- MAIN -->
+            <main>
+                <div class="cat-toolbar">
+                    <div class="cat-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Rechercher un service…">
+                    </div>
+                    <select class="cat-sort" id="sortSelect">
+                        <option value="default">Pertinence</option>
+                        <option value="price-asc">Prix croissant</option>
+                        <option value="price-desc">Prix décroissant</option>
+                        <option value="rating">Mieux notés</option>
+                    </select>
+                    <span class="cat-results"><strong id="resultsCount">6</strong> résultats</span>
+                </div>
+
+                <div class="cat-grid" id="productsGrid">
+
+                    {% if services %}
+                    {% for service in services %}
+                    <article class="sc-card"
+                        data-id="{{ service.pk }}"
+                        data-category="{{ service.category }}"
+                        data-price="{{ service.price }}"
+                        data-delivery="{{ service.delivery_time_days }}"
+                        data-seller-id="{{ service.created_by.pk }}"
+                        data-rating="4.8"
+                        data-reviews="0">
+                        <div class="sc-card-img-wrap">
+                            {% if service.image %}
+                            <img src="{{ service.image.url }}" alt="{{ service.title }}" class="sc-card-img" loading="lazy">
+                            {% else %}
+                            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-image" style="font-size:2rem;color:rgba(139,92,246,0.3);"></i>
+                            </div>
+                            {% endif %}
+                            <span class="sc-card-badge">{{ service.get_category_display }}</span>
+                            <button class="sc-card-fav" aria-label="Favoris"><i class="far fa-heart"></i></button>
+                        </div>
+                        <div class="sc-card-body">
+                            <div class="sc-price-row">
+                                <span class="sc-price">{{ service.price|floatformat:0 }} FCFA</span>
+                                <span class="sc-delivery"><i class="far fa-clock"></i> {{ service.delivery_time_days }}j</span>
+                            </div>
+                            <h3 class="sc-title">{{ service.title }}</h3>
+                            <p class="sc-desc">{{ service.description }}</p>
+                            <div class="sc-footer">
+                                <div>
+                                    <div class="sc-rating"><i class="fas fa-star"></i> 4.8</div>
+                                    <span class="sc-reviews">Nouveau</span>
+                                </div>
+                                <button class="sc-btn btn-commander" data-product-id="{{ service.pk }}">
+                                    Voir <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+
+                    {% else %}
+                    <div class="flex flex-col items-center justify-center py-20 text-center">
+                        <i class="fas fa-box-open fa-4x text-gray-500 mb-4"></i>
+                        <h3 class="text-xl font-bold text-white mb-2">Aucun service disponible</h3>
+                        <p class="text-gray-400">Revenez plus tard ou contactez-nous pour plus d'informations.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+document.addEventListener('DOMContentLoaded', function() {
+    const grid = document.getElementById('productsGrid');
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+    const resultsCount = document.getElementById('resultsCount');
+    const priceRange = document.getElementById('priceRange');
+    const priceDisplay = document.getElementById('priceDisplay');
+
+    document.querySelectorAll('.sc-pill').forEach(pill => {
+        pill.addEventListener('click', function() {
+            document.querySelectorAll('.sc-pill').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            filterProducts();
+        });
+    });
+
+    if (priceRange) {
+        priceRange.addEventListener('input', function() {
+            const v = parseInt(this.value);
+            priceDisplay.textContent = (v >= 5000 ? '5 000+ FCFA' : v.toLocaleString('fr') + ' FCFA');
+            filterProducts();
+        });
+    }
+
+    document.querySelectorAll('.sc-card-fav').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.classList.toggle('active');
+            this.querySelector('i').className = this.classList.contains('active') ? 'fas fa-heart' : 'far fa-heart';
+        });
+    });
+
+    if (searchInput) searchInput.addEventListener('input', filterProducts);
+    document.querySelectorAll('.category-filter, .delivery-filter').forEach(el => {
+        el.addEventListener('change', filterProducts);
+    });
+
+    document.getElementById('resetFilters')?.addEventListener('click', function() {
+        document.querySelectorAll('.category-filter').forEach(cb => cb.checked = true);
+        document.querySelectorAll('.delivery-filter')[0].checked = true;
+        if (priceRange) { priceRange.value = 5000; priceDisplay.textContent = '5 000 FCFA'; }
+        if (searchInput) searchInput.value = '';
+        document.querySelectorAll('.sc-pill').forEach(p => p.classList.remove('active'));
+        document.querySelector('.sc-pill[data-cat="all"]')?.classList.add('active');
+        filterProducts();
+    });
+
+    function filterProducts() {
+        const cards = Array.from(document.querySelectorAll('.sc-card'));
+        const term = searchInput ? searchInput.value.toLowerCase() : '';
+        const maxPrice = priceRange ? parseInt(priceRange.value) : 5000;
+        const activePill = document.querySelector('.sc-pill.active');
+        const pillCat = activePill ? activePill.dataset.cat : 'all';
+        let visible = 0;
+
+        cards.forEach(card => {
+            const title = card.querySelector('.sc-title')?.textContent.toLowerCase() || '';
+            const desc = card.querySelector('.sc-desc')?.textContent.toLowerCase() || '';
+            const cat = card.dataset.category || '';
+            const price = parseFloat(card.dataset.price) || 0;
+            const show = (!term || title.includes(term) || desc.includes(term))
+                      && (pillCat === 'all' || cat === pillCat)
+                      && (price <= maxPrice);
+            card.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        if (resultsCount) resultsCount.textContent = visible;
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            const cards = Array.from(document.querySelectorAll('.sc-card'));
+            cards.sort((a, b) => {
+                const pA = parseFloat(a.dataset.price) || 0, pB = parseFloat(b.dataset.price) || 0;
+                const rA = parseFloat(a.dataset.rating) || 0, rB = parseFloat(b.dataset.rating) || 0;
+                if (this.value === 'price-asc') return pA - pB;
+                if (this.value === 'price-desc') return pB - pA;
+                if (this.value === 'rating') return rB - rA;
+                return 0;
+            });
+            cards.forEach(c => grid.appendChild(c));
+        });
+    }
+
+    document.querySelectorAll('.btn-commander').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const card = this.closest('.sc-card');
+            if (!card) return;
+            const id = card.dataset.id || '1';
+            window.location.href = `/services/detail/${id}/`;
+        });
+    });
+
+    filterProducts();
+
+    // Modal triggers and handlers
+    const offerModal = document.getElementById('offerModal');
+    const btnOpenOfferModal = document.getElementById('btnOpenOfferModal');
+    const btnCloseOfferModal = document.getElementById('btnCloseOfferModal');
+
+    if (offerModal && btnOpenOfferModal) {
+        btnOpenOfferModal.addEventListener('click', () => {
+            offerModal.classList.add('active');
+        });
+    }
+
+    if (offerModal && btnCloseOfferModal) {
+        btnCloseOfferModal.addEventListener('click', () => {
+            offerModal.classList.remove('active');
+        });
+    }
+
+    if (offerModal) {
+        offerModal.addEventListener('click', (e) => {
+            if (e.target === offerModal) {
+                offerModal.classList.remove('active');
+            }
+        });
+    }
+});
+})();
+</script>
+
+<!-- MODAL DE CRÉATION D'OFFRE (PROJET CLIENT) -->
+<div class="sc-modal-overlay" id="offerModal">
+    <div class="sc-modal">
+        <button class="sc-modal-close" id="btnCloseOfferModal"><i class="fas fa-times"></i></button>
+        <h2 class="premium-title" style="font-size: 1.5rem; margin-bottom: 0.5rem; background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            Publier une offre de projet
+        </h2>
+        <p style="color: rgba(255, 255, 255, 0.4); font-size: 0.85rem; margin-bottom: 1.5rem;">
+            Détaillez votre besoin afin que les freelancers qualifiés puissent vous faire des propositions directes.
+        </p>
+        <form action="{% url 'client_offer_create' %}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="offer_title">Titre de votre projet</label>
+                <input type="text" name="title" id="offer_title" class="form-control" placeholder="Ex: Création d'un site e-commerce" required>
+            </div>
+            <div class="form-group">
+                <label for="offer_desc">Description détaillée</label>
+                <textarea name="description" id="offer_desc" class="form-control" rows="4" placeholder="Décrivez les fonctionnalités attendues, les livrables..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="offer_cat">Catégorie</label>
+                <select name="category" id="offer_cat" class="form-control">
+                    <option value="web">Développement Web</option>
+                    <option value="design">Design Graphique</option>
+                    <option value="marketing">Marketing Digital</option>
+                    <option value="branding">Branding</option>
+                    <option value="seo">SEO</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="writing">Rédaction</option>
+                    <option value="other">Autres</option>
+                </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="offer_budget_min">Budget Min (FCFA)</label>
+                    <input type="number" name="budget_min" id="offer_budget_min" class="form-control" placeholder="Optionnel">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="offer_budget_max">Budget Max (FCFA)</label>
+                    <input type="number" name="budget_max" id="offer_budget_max" class="form-control" placeholder="Optionnel">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="offer_deadline">Délai souhaité (jours)</label>
+                <input type="number" name="deadline_days" id="offer_deadline" class="form-control" value="7" min="1" required>
+            </div>
+            <div style="text-align: right; margin-top: 1.5rem;">
+                <button type="submit" style="display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, #7c3aed, #06b6d4); color: white; border: none; font-weight: 750; font-size: 0.85rem; padding: 0.75rem 1.5rem; border-radius: 0.75rem; cursor: pointer; box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);">
+                    Publier l'offre <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

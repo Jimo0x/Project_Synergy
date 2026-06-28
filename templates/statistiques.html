@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-6 py-12 animate-in fade-in duration-700">
+    <!-- En-tête -->
+    <div class="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-4xl font-extrabold text-white tracking-tight flex items-center gap-3">
+                <i class="fas fa-chart-line text-indigo-500"></i> Statistiques & Performances
+            </h1>
+            <p class="text-slate-400 mt-2 text-lg">Suivez votre activité, analysez vos performances et boostez vos revenus.</p>
+        </div>
+    </div>
+
+    <!-- Cartes de statistiques -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <!-- Revenus totaux -->
+        <div class="glass-card rounded-3xl p-6 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] transition-all duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-slate-400 font-semibold text-sm uppercase tracking-wider">Revenus totaux</span>
+                <div class="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <i class="fas fa-euro-sign"></i>
+                </div>
+            </div>
+            <h2 class="text-3xl font-extrabold text-white">{{ total_revenue }} FCFA</h2>
+            <p class="text-xs text-indigo-300 mt-2"><i class="fas fa-arrow-trend-up mr-1"></i> Revenu cumulé global</p>
+        </div>
+
+        <!-- Services créés -->
+        <div class="glass-card rounded-3xl p-6 hover:shadow-[0_0_20px_rgba(34,211,238,0.2)] transition-all duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-slate-400 font-semibold text-sm uppercase tracking-wider">Mes services</span>
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+            </div>
+            <h2 class="text-3xl font-extrabold text-white">{{ services_count }}</h2>
+            <p class="text-xs text-cyan-300 mt-2"><i class="fas fa-plus-circle mr-1"></i> Offres publiées actives</p>
+        </div>
+
+        <!-- Missions terminées -->
+        <div class="glass-card rounded-3xl p-6 hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-slate-400 font-semibold text-sm uppercase tracking-wider">Missions terminées</span>
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+            <h2 class="text-3xl font-extrabold text-white">{{ orders_completed }}</h2>
+            <p class="text-xs text-emerald-300 mt-2"><i class="fas fa-trophy mr-1"></i> Projets livrés avec succès</p>
+        </div>
+
+        <!-- En cours -->
+        <div class="glass-card rounded-3xl p-6 hover:shadow-[0_0_20px_rgba(249,115,22,0.2)] transition-all duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-slate-400 font-semibold text-sm uppercase tracking-wider">En cours</span>
+                <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-400">
+                    <i class="fas fa-spinner animate-spin"></i>
+                </div>
+            </div>
+            <h2 class="text-3xl font-extrabold text-white">{{ orders_accepted }}</h2>
+            <p class="text-xs text-orange-300 mt-2"><i class="fas fa-clock mr-1"></i> Missions actives actuellement</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Tableau des commandes récentes -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="glass-card rounded-3xl p-8">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                    <i class="fas fa-history text-indigo-400"></i> Historique des missions
+                </h2>
+                
+                {% if recent_orders %}
+                    <div class="overflow-x-auto">
+                        <table class="table w-full text-slate-300">
+                            <thead>
+                                <tr class="text-slate-400 border-b border-white/10">
+                                    <th>Service</th>
+                                    <th>Prix</th>
+                                    <th>Statut</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                    <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                        <td class="font-semibold text-white">{{ order.service.title }}</td>
+                                        <td class="font-bold text-white">{{ order.price }} FCFA</td>
+                                        <td>
+                                            {% if order.status == 'pending' %}
+                                                <span class="badge badge-ghost text-slate-400">En attente</span>
+                                            {% elif order.status == 'accepted' %}
+                                                <span class="badge badge-info text-cyan-400 bg-cyan-500/10 border-cyan-500/20">Acceptée</span>
+                                            {% elif order.status == 'in_progress' %}
+                                                <span class="badge badge-warning text-yellow-400 bg-yellow-500/10 border-yellow-500/20">En cours</span>
+                                            {% elif order.status == 'delivered' %}
+                                                <span class="badge badge-success text-emerald-400 bg-emerald-500/10 border-emerald-500/20">Livrée</span>
+                                            {% elif order.status == 'completed' %}
+                                                <span class="badge badge-success text-emerald-400 bg-emerald-500/10 border-emerald-500/20">Terminée</span>
+                                            {% elif order.status == 'cancelled' %}
+                                                <span class="badge badge-error text-red-400 bg-red-500/10 border-red-500/20">Annulée</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ order.created_at|date:"d/m/Y" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-12 text-slate-500">
+                        <i class="fas fa-folder-open text-5xl mb-4 text-slate-600"></i>
+                        <p class="text-lg">Aucune mission enregistrée pour le moment</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Résumé -->
+        <div class="lg:col-span-1 space-y-6">
+            <div class="glass-card rounded-3xl p-8">
+                <h2 class="text-2xl font-bold text-white mb-6">Résumé de l'activité</h2>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+                        <span class="text-slate-400 font-semibold text-sm uppercase">Total des missions</span>
+                        <span class="text-2xl font-extrabold text-white">{{ total_orders }}</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+                        <span class="text-slate-400 font-semibold text-sm uppercase">Actives</span>
+                        <span class="text-2xl font-extrabold text-yellow-400">{{ orders_accepted }}</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+                        <span class="text-slate-400 font-semibold text-sm uppercase">Terminées</span>
+                        <span class="text-2xl font-extrabold text-emerald-400">{{ orders_completed }}</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+                        <span class="text-slate-400 font-semibold text-sm uppercase">Annulées</span>
+                        <span class="text-2xl font-extrabold text-red-400">{{ orders_cancelled }}</span>
+                    </div>
+                </div>
+                
+                <div class="divider my-6 border-white/10"></div>
+                
+                <!-- Taux de complétion -->
+                <div class="mb-6">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-semibold text-slate-300">Taux de complétion</span>
+                        <span class="text-sm font-bold text-emerald-400">
+                            {% if total_orders > 0 %}
+                                {% widthratio orders_completed total_orders 100 %}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </span>
+                    </div>
+                    <progress class="progress progress-success w-full h-2.5 bg-slate-900/50" 
+                              value="{% if total_orders > 0 %}{% widthratio orders_completed total_orders 100 %}{% else %}0{% endif %}" 
+                              max="100"></progress>
+                </div>
+                
+                <!-- Revenu moyen par mission -->
+                {% if orders_completed > 0 %}
+                    <div class="p-6 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl text-center">
+                        <p class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Revenu moyen / mission</p>
+                        <p class="text-3xl font-extrabold text-white mt-2">{{ avg_revenue|floatformat:2 }} FCFA</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

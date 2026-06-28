@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-6 py-12 animate-in fade-in duration-700">
+    <!-- En-tête -->
+    <div class="mb-10">
+        <h1 class="text-4xl font-extrabold text-white tracking-tight flex items-center gap-3">
+            <i class="fas fa-id-card text-indigo-500"></i> Mon Profil & Compétences
+        </h1>
+        <p class="text-slate-400 mt-2 text-lg">Gérer votre portfolio public, vos expertises techniques et vos préférences de disponibilité.</p>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert mb-6 {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %} shadow-lg rounded-2xl border border-white/10">
+                <i class="fas fa-info-circle text-lg"></i>
+                <span class="font-semibold">{{ message }}</span>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Formulaire de profil -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="glass-card rounded-3xl p-8">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                    <i class="fas fa-edit text-indigo-400 text-lg"></i> Informations Professionnelles
+                </h2>
+                
+                <form method="POST" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Bio -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-slate-300 font-semibold">Présentation & Biographie</span>
+                        </label>
+                        <textarea name="bio" rows="4" 
+                                  placeholder="Décrivez votre parcours, vos points forts et votre philosophie de travail..."
+                                  class="textarea textarea-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">{{ profile.bio|default:'' }}</textarea>
+                    </div>
+                    
+                    <!-- Compétences -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-slate-300 font-semibold">Vos Compétences</span>
+                        </label>
+                        <input type="text" name="skills" 
+                               value="{{ skills_string }}"
+                               placeholder="Python, Django, JavaScript, React, Tailwind CSS"
+                               class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                        <label class="label mt-1">
+                            <span class="label-text-alt text-slate-500">Séparez vos compétences par des virgules</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Taux horaire -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-slate-300 font-semibold">Taux horaire ( FCFA/h)</span>
+                        </label>
+                        <input type="number" name="hourly_rate" 
+                               value="{{ profile.hourly_rate|default:'' }}"
+                               min="1" step="0.01" placeholder="50.00"
+                               class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500 w-full max-w-xs">
+                    </div>
+                    
+                    <!-- URL Portfolio -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-slate-300 font-semibold">Lien de votre Portfolio</span>
+                        </label>
+                        <input type="url" name="portfolio_url" 
+                               value="{{ profile.portfolio_url|default:'' }}"
+                               placeholder="https://votreportfolio.com"
+                               class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                    </div>
+                    
+                    <!-- Disponibilité -->
+                    <div class="form-control bg-slate-900/50 rounded-2xl border border-slate-800 p-4">
+                        <label class="label cursor-pointer justify-start gap-3">
+                            <input type="checkbox" name="available" 
+                                   {% if profile.available %}checked{% endif %}
+                                   class="checkbox checkbox-primary">
+                            <span class="label-text text-slate-200 font-semibold">Disponible immédiatement pour de nouvelles missions</span>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary rounded-xl px-8 shadow-lg shadow-indigo-500/20 font-bold hover:scale-[1.02] transition-all">
+                        <i class="fas fa-save mr-2"></i> Enregistrer mon Profil
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Aperçu du profil -->
+        <div class="lg:col-span-1">
+            <div class="glass-card rounded-3xl p-8 sticky top-6 hover:shadow-[0_0_25px_rgba(99,102,241,0.15)] transition-all duration-500">
+                <h2 class="text-2xl font-bold text-white mb-6">Aperçu Public</h2>
+                
+                <div class="text-center mb-6">
+                    <div class="avatar placeholder online mx-auto">
+                        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-full w-24 h-24 flex items-center justify-center font-extrabold text-3xl shadow-lg border-2 border-indigo-400">
+                            {% if user.avatar %}
+                                <img src="{{ user.avatar.url }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <span>{{ user.first_name.0|default:'F' }}{{ user.last_name.0|default:'' }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mt-4">{{ user.first_name }} {{ user.last_name }}</h3>
+                    <p class="text-slate-400 text-sm mt-1">{{ user.email }}</p>
+                </div>
+                
+                <div class="divider border-white/5 my-6"></div>
+                
+                <div class="space-y-4">
+                    <!-- Note -->
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400 font-semibold text-sm">RÉPUTATION</span>
+                        <div class="flex items-center gap-1.5 badge bg-indigo-500/10 border-indigo-500/30 text-indigo-300 font-bold px-3 py-3">
+                            <i class="fas fa-star text-yellow-500 text-xs"></i>
+                            <span>{{ profile.rating|default:'0.0' }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Statut -->
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400 font-semibold text-sm">STATUT</span>
+                        {% if profile.available %}
+                            <span class="badge text-emerald-400 bg-emerald-500/10 border-emerald-500/20 font-bold px-3 py-3">Disponible</span>
+                        {% else %}
+                            <span class="badge text-red-400 bg-red-500/10 border-red-500/20 font-bold px-3 py-3">Indisponible</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Taux horaire -->
+                    {% if profile.hourly_rate %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400 font-semibold text-sm">TARIF HORAIRE</span>
+                        <span class="font-extrabold text-white text-lg">{{ profile.hourly_rate }} FCFA/h</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Compétences -->
+                {% if skills_list %}
+                <div class="divider border-white/5 my-6"></div>
+                <div>
+                    <span class="text-slate-400 font-semibold text-xs uppercase tracking-wider">Compétences clés</span>
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        {% for skill in skills_list %}
+                            <span class="badge badge-md bg-white/5 border border-white/10 text-slate-200 py-3.5 px-3.5">{{ skill.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Bio -->
+                {% if profile.bio %}
+                <div class="divider border-white/5 my-6"></div>
+                <div>
+                    <span class="text-slate-400 font-semibold text-xs uppercase tracking-wider">À propos</span>
+                    <p class="text-sm text-slate-300 leading-relaxed mt-2 line-clamp-4">{{ profile.bio }}</p>
+                </div>
+                {% endif %}
+                
+                <!-- Lien portfolio -->
+                {% if profile.portfolio_url %}
+                <div class="divider border-white/5 my-6"></div>
+                <a href="{{ profile.portfolio_url }}" target="_blank" class="btn btn-outline btn-sm w-full rounded-xl py-2 h-auto text-white hover:bg-indigo-500 hover:border-indigo-500 transition-all font-bold">
+                    <i class="fas fa-external-link-alt mr-2 text-xs"></i> Consulter le Portfolio
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

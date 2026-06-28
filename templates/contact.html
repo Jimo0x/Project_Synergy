@@ -1,0 +1,438 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contactez-nous - SynergyCraft{% endblock %}
+
+{% block content %}
+<style>
+    /* ── CONFIGURATION & VIEWPORT GLOBALS ── */
+    .contact-viewport {
+        position: relative;
+        min-height: 100vh;
+        background-color: #030305;
+        overflow-x: hidden;
+        font-family: 'Space Grotesk', sans-serif;
+        color: #E8E8F0;
+        padding: 6rem 2rem 4rem;
+        z-index: 1;
+    }
+
+    /* Décors d'arrière-plan */
+    .nebula-bg {
+        position: absolute;
+        inset: 0;
+        background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=1924&q=80');
+        background-size: cover;
+        background-position: center;
+        filter: blur(80px) brightness(0.15);
+        transform: scale(1.1);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .blur-glow {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(140px);
+        opacity: 0.18;
+        pointer-events: none;
+        z-index: 1;
+    }
+    .glow-cyan   { background: #06b6d4; width: 500px; height: 500px; top: -10%; left: -10%; }
+    .glow-purple { background: #7c3aed; width: 600px; height: 600px; bottom: 20%; right: -10%; }
+
+    .premium-title { font-family: 'Clash Display', 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+
+    /* ── HEADER CONTACT ── */
+    .contact-header {
+        position: relative;
+        z-index: 10;
+        text-align: center;
+        max-width: 700px;
+        margin: 0 auto 4rem;
+    }
+
+    .contact-badge {
+        display: inline-block;
+        padding: 0.35rem 1rem;
+        background: rgba(6,182,212,0.1);
+        border: 1px solid rgba(6,182,212,0.3);
+        color: #06b6d4;
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 1.5rem;
+    }
+
+    /* ── LAYOUT GRID ── */
+    .contact-layout {
+        position: relative;
+        z-index: 10;
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+        perspective: 1500px;
+    }
+
+    @media (min-width: 992px) {
+        .contact-layout { grid-template-columns: 1fr 1.2fr; align-items: start; }
+    }
+
+    /* ── INFO CARTES (GAUCHE) ── */
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+
+    @media (min-width: 640px) {
+        .info-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .info-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 1.5rem;
+        padding: 1.75rem;
+        transition: all 0.3s ease;
+        transform-style: preserve-3d;
+    }
+
+    .info-card:hover {
+        border-color: rgba(6,182,212,0.3);
+        background: rgba(255, 255, 255, 0.04);
+        transform: translateY(-5px);
+    }
+
+    .info-card-wide { grid-column: 1 / -1; }
+
+    .info-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 1rem;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .info-card h3 { font-size: 1.1rem; color: white; margin-bottom: 0.5rem; }
+    .info-card p { font-size: 0.85rem; color: rgba(255,255,255,0.5); line-height: 1.6; }
+
+    /* Réseaux sociaux */
+    .social-row { display: flex; gap: 0.75rem; margin-top: 1rem; }
+    .social-btn {
+        width: 40px; height: 40px; border-radius: 0.75rem;
+        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+        color: white; display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s ease; text-decoration: none;
+    }
+    .social-btn:hover { background: var(--primary-color); border-color: var(--primary-color); transform: translateY(-3px); }
+    .social-btn.fb:hover { background: #1877F2; border-color: #1877F2; }
+    .social-btn.tw:hover { background: #000000; border-color: #333; }
+    .social-btn.in:hover { background: #E1306C; border-color: #E1306C; }
+    .social-btn.li:hover { background: #0A66C2; border-color: #0A66C2; }
+
+    /* ── FORMULAIRE GLASSMORPHISM (DROITE) ── */
+    .glass-form-card {
+        background: rgba(255, 255, 255, 0.01);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border-radius: 2rem;
+        padding: 2.5rem;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        transform-style: preserve-3d;
+    }
+
+    .form-group { margin-bottom: 1.5rem; position: relative; }
+    
+    .form-label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: rgba(255,255,255,0.8);
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.05em;
+    }
+
+    .input-wrapper { position: relative; }
+    
+    .input-icon {
+        position: absolute;
+        left: 1.25rem;
+        top: 1.1rem;
+        color: rgba(255,255,255,0.3);
+        transition: color 0.3s ease;
+    }
+
+    .glass-input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1rem;
+        padding: 1rem 1.25rem 1rem 3rem;
+        color: white;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .glass-input::placeholder { color: rgba(255,255,255,0.2); }
+    
+    .glass-input:focus {
+        outline: none;
+        border-color: #06b6d4;
+        background: rgba(255, 255, 255, 0.06);
+        box-shadow: 0 0 20px rgba(6,182,212,0.15);
+    }
+
+    .glass-input:focus + .input-icon, .input-wrapper:focus-within .input-icon {
+        color: #06b6d4;
+    }
+
+    textarea.glass-input {
+        min-height: 140px;
+        resize: vertical;
+        padding-top: 1rem;
+    }
+
+    .btn-submit-glow {
+        width: 100%;
+        background: linear-gradient(135deg, #7c3aed, #06b6d4);
+        color: white;
+        border: none;
+        border-radius: 1rem;
+        padding: 1.1rem;
+        font-size: 1rem;
+        font-weight: 700;
+        font-family: 'Space Grotesk', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(124,58,237,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .btn-submit-glow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 40px rgba(6,182,212,0.4);
+    }
+
+    /* ── CARTE MAP ── */
+    .map-wrapper {
+        position: relative;
+        z-index: 10;
+        margin: 4rem auto 0;
+        max-width: 1200px;
+        height: 350px;
+        border-radius: 2rem;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.05);
+        background: rgba(255,255,255,0.02);
+    }
+
+    /* Filtre magique pour rendre Google Maps "Dark Premium" */
+    .map-wrapper iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        filter: grayscale(90%) invert(100%) contrast(85%) hue-rotate(180deg);
+        opacity: 0.8;
+        transition: opacity 0.3s;
+    }
+
+    .map-wrapper iframe:hover { opacity: 1; }
+</style>
+
+<div class="contact-viewport">
+    <div class="nebula-bg"></div>
+    <div class="blur-glow glow-cyan"></div>
+    <div class="blur-glow glow-purple"></div>
+
+    <div class="contact-header" id="contact-header">
+        <span class="contact-badge">Support & Partenariat</span>
+        <h1 class="premium-title text-4xl md:text-5xl text-white mb-4">On échange ?</h1>
+        <p class="text-gray-400 text-sm md:text-base line-height-relaxed">
+            Une question technique, un projet d'envergure ou simplement envie de discuter de l'écosystème ? Notre équipe basée au Bénin vous répond sous 24h.
+        </p>
+    </div>
+
+    <div class="contact-layout">
+        
+        <div class="info-grid" id="info-grid">
+            
+            <div class="info-card info-card-wide">
+                <div class="info-icon" style="color: #06b6d4; background: rgba(6,182,212,0.1); border-color: rgba(6,182,212,0.2);">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <h3 class="premium-title">Siège Social</h3>
+                <p>Abomey-Calavi, Département de l'Atlantique<br>Bénin</p>
+            </div>
+
+            <div class="info-card">
+                <div class="info-icon" style="color: #7c3aed; background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.2);">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h3 class="premium-title">Email</h3>
+                <p>hello@synergycraft.me<br>support@synergycraft.me</p>
+            </div>
+
+            <div class="info-card">
+                <div class="info-icon" style="color: #22c55e; background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.2);">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+                <h3 class="premium-title">Ligne Directe</h3>
+                <p>+229 00 00 00 00<br>Lun - Sam, 9h à 18h</p>
+            </div>
+
+            <div class="info-card info-card-wide" style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <h3 class="premium-title mb-1">Nos Réseaux</h3>
+                    <p style="margin: 0;">Rejoignez la communauté</p>
+                </div>
+                <div class="social-row mt-0">
+                    <a href="#" class="social-btn fb"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-btn tw"><i class="fab fa-x-twitter"></i></a>
+                    <a href="#" class="social-btn in"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-btn li"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="glass-form-card" id="contact-form">
+            <h3 class="premium-title text-2xl text-white mb-6">Envoyez un message</h3>
+            
+            <form method="post" action="{% url 'contact' %}" id="mainContactForm">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label" for="nom">Nom complet</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" class="glass-input" id="nom" name="nom" required placeholder="Votre nom">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="email">Adresse Email</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-at input-icon"></i>
+                            <input type="email" class="glass-input" id="email" name="email" required placeholder="nom@exemple.com">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="sujet">Sujet de la demande</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-tag input-icon"></i>
+                        <input type="text" class="glass-input" id="sujet" name="sujet" required placeholder="Ex: Devis, Bug, Partenariat...">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="message">Votre Message</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-comment-alt input-icon" style="top: 1.25rem;"></i>
+                        <textarea class="glass-input" id="message" name="message" required placeholder="Détaillez votre besoin ici..."></textarea>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit-glow">
+                    Transmettre le message <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="map-wrapper" id="contact-map">
+        <iframe 
+            src="https://maps.google.com/maps?q=Abomey-Calavi,%20Benin&t=&z=14&ie=UTF8&iwloc=&output=embed" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tl = gsap.timeline();
+
+        // 1. Animation d'entrée du header
+        tl.fromTo("#contact-header", 
+            { opacity: 0, y: -30 },
+            { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }
+        );
+
+        // 2. Animation des cartes d'infos (gauche)
+        tl.fromTo(".info-card", 
+            { opacity: 0, x: -30, rotateY: 10 },
+            { opacity: 1, x: 0, rotateY: 0, duration: 0.6, stagger: 0.1, ease: "power2.out" },
+            "-=0.4"
+        );
+
+        // 3. Animation du formulaire (droite)
+        tl.fromTo("#contact-form", 
+            { opacity: 0, x: 40, rotateY: -10 },
+            { opacity: 1, x: 0, rotateY: 0, duration: 0.8, ease: "power3.out" },
+            "-=0.6"
+        );
+
+        // 4. Animation de la carte
+        tl.fromTo("#contact-map",
+            { opacity: 0, y: 40 },
+            { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" },
+            "-=0.4"
+        );
+
+        // EFFET PARALLAXE 3D AU SURVOL DU FORMULAIRE
+        const formCard = document.getElementById('contact-form');
+        
+        if (formCard && window.innerWidth >= 992) {
+            formCard.addEventListener('mousemove', (e) => {
+                const rect = formCard.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = (centerY - y) / 40;
+                const rotateY = (x - centerX) / 40;
+
+                gsap.to(formCard, {
+                    duration: 0.4,
+                    rotateX: rotateX,
+                    rotateY: rotateY,
+                    ease: "power2.out",
+                    overwrite: "auto"
+                });
+            });
+
+            formCard.addEventListener('mouseleave', () => {
+                gsap.to(formCard, {
+                    duration: 0.8,
+                    rotateX: 0,
+                    rotateY: 0,
+                    ease: "elastic.out(1, 0.4)"
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,832 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Recoleta:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary: #2D2A6E;
+        --primary-light: #4845A0;
+        --primary-dark: #1A1845;
+        --accent: #FF6B9D;
+
+        --surface-1: #FFFFFF;
+        --surface-2: #F8FAFB;
+        --surface-3: #F1F5F9;
+        --border: rgba(0,0,0,0.08);
+        --border-light: rgba(0,0,0,0.05);
+
+        --text-primary: #0F172A;
+        --text-secondary: #475569;
+        --text-tertiary: #64748B;
+
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+        --shadow-md: 0 4px 8px -2px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.05);
+        --shadow-lg: 0 12px 24px -4px rgba(0,0,0,0.12), 0 4px 8px -4px rgba(0,0,0,0.06);
+        --shadow-xl: 0 24px 48px -12px rgba(0,0,0,0.16);
+
+        --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    :root.dark, html.dark, [data-theme="dark"], body.dark {
+        --surface-1: #0F172A;
+        --surface-2: #1E293B;
+        --surface-3: #334155;
+        --border: rgba(255,255,255,0.10);
+        --border-light: rgba(255,255,255,0.06);
+        --text-primary: #F1F5F9;
+        --text-secondary: #CBD5E1;
+        --text-tertiary: #94A3B8;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.5);
+        --shadow-md: 0 4px 8px -2px rgba(0,0,0,0.6);
+        --shadow-lg: 0 12px 24px -4px rgba(0,0,0,0.7);
+        --shadow-xl: 0 24px 48px -12px rgba(0,0,0,0.8);
+    }
+
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        letter-spacing: -0.011em;
+        background: var(--surface-2);
+        color: var(--text-primary);
+    }
+
+    .font-display { font-family: 'Recoleta', Georgia, serif; letter-spacing: -0.02em; }
+    .font-mono    { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+
+    /* ── Breadcrumb ───────────────────────────────────────────── */
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-tertiary);
+        padding: 1.5rem 0;
+    }
+    .breadcrumb a { color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color .2s; }
+    .breadcrumb a:hover { color: var(--primary); }
+    :root.dark .breadcrumb a:hover,
+    html.dark .breadcrumb a:hover,
+    [data-theme="dark"] .breadcrumb a:hover,
+    body.dark .breadcrumb a:hover { color: #818CF8; }
+    .breadcrumb-sep { color: var(--border); }
+
+    /* ── Layout principal ─────────────────────────────────────── */
+    .detail-layout {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 3rem;
+        align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+        .detail-layout { grid-template-columns: 1fr; }
+    }
+
+    /* ── Galerie image ────────────────────────────────────────── */
+    .image-gallery {
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-lg);
+        position: relative;
+    }
+
+    .image-main {
+        width: 100%;
+        height: 460px;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.6s var(--ease-out-expo);
+    }
+
+    .image-gallery:hover .image-main { transform: scale(1.02); }
+
+    .image-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.25) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .image-badge {
+        position: absolute;
+        top: 1.25rem;
+        left: 1.25rem;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.45rem 0.9rem;
+        border-radius: 99px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        backdrop-filter: blur(12px);
+    }
+
+    .badge-category {
+        background: rgba(255,255,255,0.92);
+        color: var(--primary);
+        border: 1px solid rgba(45,42,110,0.15);
+    }
+
+    .badge-fast {
+        background: rgba(34,197,94,0.15);
+        color: #16A34A;
+        border: 1px solid rgba(34,197,94,0.25);
+    }
+
+    /* ── Info produit (colonne gauche) ────────────────────────── */
+    .product-info { padding-top: 0.5rem; }
+
+    .product-tag {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+
+    :root.dark .product-tag, html.dark .product-tag,
+    [data-theme="dark"] .product-tag, body.dark .product-tag { color: #818CF8; }
+
+    .product-title-main {
+        font-size: clamp(1.75rem, 3vw, 2.5rem);
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.2;
+        margin-bottom: 1.25rem;
+    }
+
+    .rating-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .stars { display: flex; gap: 2px; }
+    .stars i { color: #F59E0B; font-size: 1rem; }
+
+    .rating-score {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .rating-reviews {
+        font-size: 0.875rem;
+        color: var(--text-tertiary);
+    }
+
+    .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+    .product-description-full {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        line-height: 1.75;
+        margin-bottom: 2rem;
+    }
+
+    /* ── Features list ────────────────────────────────────────── */
+    .features-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 640px) { .features-grid { grid-template-columns: 1fr; } }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+        background: var(--surface-1);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        transition: all 0.25s var(--ease-out-expo);
+    }
+
+    .feature-item:hover {
+        border-color: rgba(45,42,110,0.2);
+        background: var(--surface-2);
+        transform: translateX(3px);
+    }
+
+    .feature-item i {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: rgba(45,42,110,0.08);
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    :root.dark .feature-item i, html.dark .feature-item i,
+    [data-theme="dark"] .feature-item i, body.dark .feature-item i {
+        background: rgba(129,140,248,0.15);
+        color: #818CF8;
+    }
+
+    /* ── Sticky order card ────────────────────────────────────── */
+    .order-card {
+        background: var(--surface-1);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+        position: sticky;
+        top: 5rem;
+    }
+
+    .price-display {
+        margin-bottom: 1.5rem;
+    }
+
+    .price-label {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.35rem;
+    }
+
+    .price-amount {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+
+    .price-currency {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-left: 0.25rem;
+    }
+
+    /* Delivery pills */
+    .delivery-info {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.875rem 1rem;
+        background: var(--surface-2);
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+
+    .delivery-info i { color: var(--primary); }
+    :root.dark .delivery-info i, html.dark .delivery-info i,
+    [data-theme="dark"] .delivery-info i, body.dark .delivery-info i { color: #818CF8; }
+
+    /* CTA Buttons */
+    .btn-order {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: 14px;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        transition: all 0.3s var(--ease-out-expo);
+        margin-bottom: 0.75rem;
+        box-shadow: 0 4px 16px rgba(45,42,110,0.25);
+    }
+
+    .btn-order:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(45,42,110,0.35);
+    }
+
+    :root.dark .btn-order, html.dark .btn-order,
+    [data-theme="dark"] .btn-order, body.dark .btn-order { background: #6366F1; box-shadow: 0 4px 16px rgba(99,102,241,0.3); }
+    :root.dark .btn-order:hover, html.dark .btn-order:hover,
+    [data-theme="dark"] .btn-order:hover, body.dark .btn-order:hover { background: #4F46E5; box-shadow: 0 8px 24px rgba(99,102,241,0.45); }
+
+    .btn-contact {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        background: var(--surface-2);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        transition: all 0.3s var(--ease-out-expo);
+    }
+
+    .btn-contact:hover {
+        background: var(--surface-3);
+        border-color: var(--primary);
+        transform: translateY(-1px);
+    }
+
+    /* Guarantees */
+    .guarantee-list {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-light);
+        display: flex;
+        flex-direction: column;
+        gap: 0.875rem;
+    }
+
+    .guarantee-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .guarantee-item i {
+        color: #16A34A;
+        font-size: 1rem;
+    }
+
+    /* ── Seller card ──────────────────────────────────────────── */
+    .seller-card {
+        background: var(--surface-1);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .seller-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .seller-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        object-fit: cover;
+        border: 2px solid var(--border);
+    }
+
+    .seller-name { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+    .seller-title { font-size: 0.8125rem; color: var(--text-tertiary); margin-top: 2px; }
+
+    .seller-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .seller-stat {
+        text-align: center;
+        padding: 0.75rem;
+        background: var(--surface-2);
+        border-radius: 10px;
+    }
+
+    .seller-stat-value { font-size: 1.125rem; font-weight: 700; color: var(--text-primary); }
+    .seller-stat-label { font-size: 0.6875rem; color: var(--text-tertiary); margin-top: 2px; font-weight: 500; }
+
+    /* ── Back button ──────────────────────────────────────────── */
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1.25rem;
+        background: var(--surface-1);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: all 0.25s ease;
+        box-shadow: var(--shadow-sm);
+        cursor: pointer;
+    }
+
+    .btn-back:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        transform: translateX(-3px);
+    }
+
+    :root.dark .btn-back:hover, html.dark .btn-back:hover,
+    [data-theme="dark"] .btn-back:hover, body.dark .btn-back:hover { border-color: #818CF8; color: #818CF8; }
+
+    /* ── Gradient text ────────────────────────────────────────── */
+    .gradient-text {
+        background: linear-gradient(135deg, var(--primary) 0%, #5B58B8 40%, var(--accent) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    :root.dark .gradient-text, html.dark .gradient-text,
+    [data-theme="dark"] .gradient-text, body.dark .gradient-text {
+        background: linear-gradient(135deg, #818CF8 0%, #C084FC 40%, #F472B6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* ── Reviews section ──────────────────────────────────────── */
+    .reviews-section {
+        margin-top: 3rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+        letter-spacing: -0.02em;
+    }
+
+    .review-card {
+        background: var(--surface-1);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s var(--ease-out-expo);
+    }
+
+    .review-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .reviewer-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .reviewer-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        object-fit: cover;
+    }
+
+    .reviewer-name { font-weight: 600; color: var(--text-primary); font-size: 0.9375rem; }
+    .review-date   { font-size: 0.8125rem; color: var(--text-tertiary); }
+    .review-text   { font-size: 0.9375rem; color: var(--text-secondary); line-height: 1.65; }
+
+    /* ── Fade animations ──────────────────────────────────────── */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(24px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in     { animation: fadeInUp .6s cubic-bezier(0.16,1,0.3,1) backwards; }
+    .delay-100   { animation-delay: .1s; }
+    .delay-200   { animation-delay: .2s; }
+    .delay-300   { animation-delay: .3s; }
+
+    /* ── Not found state ──────────────────────────────────────── */
+    .not-found {
+        text-align: center;
+        padding: 6rem 1rem;
+        color: var(--text-secondary);
+    }
+    .not-found i { font-size: 4rem; color: var(--border); margin-bottom: 1.5rem; }
+</style>
+
+<div class="min-h-screen">
+    <div class="container mx-auto px-4 pb-16">
+
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb fade-in">
+            <a href="/">Accueil</a>
+            <span class="breadcrumb-sep"><i class="fas fa-chevron-right" style="font-size:.65rem;"></i></span>
+            <a href="/catalogue/">Catalogue</a>
+            <span class="breadcrumb-sep"><i class="fas fa-chevron-right" style="font-size:.65rem;"></i></span>
+            <span id="bc-title" style="color:var(--text-primary); font-weight:600;">Chargement…</span>
+        </nav>
+
+        <!-- Bouton retour -->
+        <div class="mb-6 fade-in delay-100">
+            <button class="btn-back" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i> Retour au catalogue
+            </button>
+        </div>
+
+        <!-- Layout principal -->
+        <div class="detail-layout">
+            <!-- Colonne gauche : image + infos produit -->
+            <div>
+                <!-- Galerie image -->
+                <div class="image-gallery fade-in delay-100">
+                    <img id="detail-img" src="" alt="" class="image-main">
+                    <div class="image-overlay"></div>
+                    <div class="image-badge">
+                        <span class="badge-pill badge-category" id="detail-category-badge">…</span>
+                        <span class="badge-pill badge-fast" id="detail-delivery-badge">
+                            <i class="fas fa-bolt"></i> <span id="detail-delivery-text">…</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Info produit -->
+                <div class="product-info mt-8 fade-in delay-200">
+                    <p class="product-tag" id="detail-tag">…</p>
+
+                    <h1 class="product-title-main font-display" id="detail-title">
+                        Chargement…
+                    </h1>
+
+                    <!-- Rating -->
+                    <div class="rating-row">
+                        <div class="stars" id="detail-stars"></div>
+                        <span class="rating-score" id="detail-score">0.0</span>
+                        <span class="rating-reviews" id="detail-reviews">(0 avis)</span>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <p class="product-description-full" id="detail-description">
+                        Chargement de la description…
+                    </p>
+
+                    <!-- Features -->
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <i class="fas fa-check-circle"></i>
+                            Fichiers sources inclus
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-infinity"></i>
+                            Révisions illimitées
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-shield-alt"></i>
+                            Garantie 30 jours
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-headset"></i>
+                            Support dédié 24/7
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-award"></i>
+                            Qualité premium certifiée
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-lock"></i>
+                            Paiement 100% sécurisé
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reviews -->
+                <div class="reviews-section fade-in delay-300">
+                    <h2 class="section-title font-display">
+                        Avis <span class="gradient-text">clients</span>
+                    </h2>
+
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <img src="https://i.pravatar.cc/150?u=rev1" alt="Aminata" class="reviewer-avatar">
+                                <div>
+                                    <div class="reviewer-name">Aminata K.</div>
+                                    <div class="stars" style="margin-top:3px;">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="review-date">Il y a 3 jours</span>
+                        </div>
+                        <p class="review-text">Service absolument impeccable ! Livraison ultra-rapide et qualité au-delà de mes attentes. Je recommande vivement.</p>
+                    </div>
+
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <img src="https://i.pravatar.cc/150?u=rev2" alt="Kofi" class="reviewer-avatar">
+                                <div>
+                                    <div class="reviewer-name">Kofi M.</div>
+                                    <div class="stars" style="margin-top:3px;">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="review-date">Il y a 1 semaine</span>
+                        </div>
+                        <p class="review-text">Excellent rapport qualité-prix. L'équipe est très réactive et à l'écoute. Le résultat final est professionnel et correspond parfaitement à mes attentes.</p>
+                    </div>
+
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <img src="https://i.pravatar.cc/150?u=rev3" alt="Fatou" class="reviewer-avatar">
+                                <div>
+                                    <div class="reviewer-name">Fatou D.</div>
+                                    <div class="stars" style="margin-top:3px;">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="review-date">Il y a 2 semaines</span>
+                        </div>
+                        <p class="review-text">Je suis très satisfaite du service rendu. Professionnel, ponctuel et de grande qualité. Je reviendrai sans hésiter pour d'autres projets.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne droite : order card -->
+            <div>
+                <div class="order-card fade-in delay-200">
+                    <!-- Prix -->
+                    <div class="price-display">
+                        <div class="price-label">Prix du service</div>
+                        <div>
+                            <span class="price-amount font-mono" id="detail-price">—</span>
+                            <span class="price-currency">FCFA</span>
+                        </div>
+                    </div>
+
+                    <!-- Délai -->
+                    <div class="delivery-info">
+                        <i class="fas fa-clock"></i>
+                        Délai de livraison : <strong id="detail-delivery-card">—</strong>
+                    </div>
+
+                    <!-- Boutons CTA -->
+                    <button class="btn-order" id="btn-commander">
+                        <i class="fas fa-shopping-cart"></i>
+                        Commander maintenant
+                    </button>
+                    <button class="btn-contact" id="btn-contacter">
+                        <i class="far fa-comment-dots"></i>
+                        Contacter le vendeur
+                    </button>
+
+                    <!-- Garanties -->
+                    <div class="guarantee-list">
+                        <div class="guarantee-item">
+                            <i class="fas fa-check-circle"></i>
+                            Satisfaction garantie 30 jours
+                        </div>
+                        <div class="guarantee-item">
+                            <i class="fas fa-check-circle"></i>
+                            Révisions illimitées incluses
+                        </div>
+                        <div class="guarantee-item">
+                            <i class="fas fa-check-circle"></i>
+                            Paiement 100% sécurisé
+                        </div>
+                        <div class="guarantee-item">
+                            <i class="fas fa-check-circle"></i>
+                            Support réactif 24h/7j
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seller card -->
+                <div class="seller-card fade-in delay-300">
+                    <div class="seller-header">
+                        <img src="https://i.pravatar.cc/150?u=seller1" alt="Vendeur" class="seller-avatar">
+                        <div>
+                            <div class="seller-name">SynergyCraft Elite</div>
+                            <div class="seller-title">Expert certifié · Pro vérifié</div>
+                        </div>
+                    </div>
+
+                    <div class="seller-stats">
+                        <div class="seller-stat">
+                            <div class="seller-stat-value font-mono">98%</div>
+                            <div class="seller-stat-label">Satisfaction</div>
+                        </div>
+                        <div class="seller-stat">
+                            <div class="seller-stat-value font-mono">486</div>
+                            <div class="seller-stat-label">Commandes</div>
+                        </div>
+                        <div class="seller-stat">
+                            <div class="seller-stat-value font-mono">4.9</div>
+                            <div class="seller-stat-label">Note moy.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    // ── Lire les paramètres du contexte Django ou de l'URL ────
+    {% if service %}
+    const id          = '{{ service.pk }}';
+    const title       = '{{ service.title|escapejs }}';
+    const category    = '{{ service.category|escapejs }}';
+    const price       = '{{ service.price|stringformat:"g" }}';
+    const delivery    = '{{ service.delivery_time_days }}h';
+    const rating      = 5.0;
+    const reviews     = 0;
+    const img         = '{{ service.image.url|escapejs }}';
+    const description = '{{ service.description|escapejs }}';
+    {% else %}
+    const params      = new URLSearchParams(window.location.search);
+    const id          = params.get('id')       || '0';
+    const title       = params.get('title')       || 'Service Digital Premium';
+    const category    = params.get('category')    || 'Services';
+    const price       = params.get('price')       || '—';
+    const delivery    = params.get('delivery')    || '—';
+    const rating      = parseFloat(params.get('rating') || '5.0');
+    const reviews     = params.get('reviews')     || '0';
+    const img         = params.get('img')         || 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=900&h=500&fit=crop';
+    const description = params.get('description') || 'Description complète du service disponible après chargement.';
+    {% endif %}
+
+    // ── Peupler la page ───────────────────────────────────────
+    document.getElementById('bc-title').textContent            = title;
+    document.getElementById('detail-title').textContent        = title;
+    document.getElementById('detail-tag').textContent          = category;
+    document.getElementById('detail-category-badge').textContent = category;
+    document.getElementById('detail-delivery-text').textContent = delivery;
+    document.getElementById('detail-delivery-badge').innerHTML = `<i class="fas fa-bolt"></i> ${delivery}`;
+    document.getElementById('detail-price').textContent        = parseInt(price).toLocaleString('fr-FR');
+    document.getElementById('detail-delivery-card').textContent = delivery;
+    document.getElementById('detail-description').textContent  = description;
+    document.getElementById('detail-score').textContent        = rating.toFixed(1);
+    document.getElementById('detail-reviews').textContent      = `(${reviews} avis)`;
+
+    const imgEl = document.getElementById('detail-img');
+    imgEl.src = img;
+    imgEl.alt = title;
+
+    // ── Générer les étoiles ───────────────────────────────────
+    const starsEl  = document.getElementById('detail-stars');
+    const full     = Math.floor(rating);
+    const half     = rating % 1 >= 0.3 && rating % 1 < 0.8;
+    const empty    = 5 - full - (half ? 1 : 0);
+    starsEl.innerHTML =
+        '<i class="fas fa-star"></i>'.repeat(full) +
+        (half ? '<i class="fas fa-star-half-alt"></i>' : '') +
+        '<i class="far fa-star"></i>'.repeat(empty);
+
+    // ── Bouton commander → page de commande Django ────────────
+    document.getElementById('btn-commander').addEventListener('click', () => {
+        window.location.href = `/commander/${id}/`;
+    });
+
+    // ── Bouton contacter → messagerie avec le vendeur ──────────
+    const btnContacter = document.getElementById('btn-contacter');
+    if (btnContacter) {
+        btnContacter.addEventListener('click', () => {
+            const sellerId = params.get('seller_id');
+            if (sellerId) {
+                window.location.href = `/messages/?start=${sellerId}`;
+            } else {
+                window.location.href = `/messages/`;
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}

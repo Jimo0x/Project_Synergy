@@ -1,0 +1,986 @@
+<!-- FILE: panier.html -->
+{% extends 'base.html' %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Recoleta:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ── TOKENS ──────────────────────────────────────────────────── */
+:root {
+    --primary: #2D2A6E; --primary-light: #4845A0; --primary-dark: #1A1845;
+    --accent:  #FF6B9D;
+    --success: #16A34A; --warning: #D97706; --danger: #DC2626;
+
+    --surface-1: #FFFFFF; --surface-2: #F8FAFB; --surface-3: #F1F5F9;
+    --border: rgba(0,0,0,.08); --border-light: rgba(0,0,0,.05);
+
+    --text-primary: #0F172A; --text-secondary: #475569; --text-tertiary: #64748B;
+
+    --shadow-sm: 0 2px 4px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-md: 0 4px 8px -2px rgba(0,0,0,.08);
+    --shadow-lg: 0 12px 24px -4px rgba(0,0,0,.12), 0 4px 8px -4px rgba(0,0,0,.06);
+    --shadow-xl: 0 24px 48px -12px rgba(0,0,0,.16);
+
+    --ease: cubic-bezier(.16,1,.3,1);
+}
+:root.dark,html.dark,[data-theme="dark"],body.dark {
+    --surface-1:#0F172A; --surface-2:#1E293B; --surface-3:#334155;
+    --border:rgba(255,255,255,.1); --border-light:rgba(255,255,255,.06);
+    --text-primary:#F1F5F9; --text-secondary:#CBD5E1; --text-tertiary:#94A3B8;
+    --shadow-sm:0 2px 4px rgba(0,0,0,.5); --shadow-md:0 4px 8px rgba(0,0,0,.6);
+    --shadow-lg:0 12px 24px rgba(0,0,0,.7); --shadow-xl:0 24px 48px rgba(0,0,0,.8);
+}
+*{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;letter-spacing:-.011em;background:var(--surface-2);color:var(--text-primary);}
+.font-display{font-family:'Recoleta',Georgia,serif;letter-spacing:-.02em;}
+.font-mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;}
+
+/* ── STEPPER ─────────────────────────────────────────────────── */
+.stepper{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:3rem;}
+.step{display:flex;align-items:center;gap:.625rem;}
+.step-circle{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.875rem;border:2px solid var(--border);color:var(--text-tertiary);background:var(--surface-1);transition:all .3s var(--ease);}
+.step-circle.done{background:rgba(45,42,110,.1);border-color:rgba(45,42,110,.3);color:var(--primary);}
+.step-circle.active{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 4px 12px rgba(45,42,110,.35);}
+.step-label{font-size:.875rem;font-weight:600;color:var(--text-tertiary);}
+.step-label.active{color:var(--text-primary);}
+.step-label.done{color:var(--primary);}
+:root.dark .step-label.done,html.dark .step-label.done,[data-theme="dark"] .step-label.done,body.dark .step-label.done{color:#818CF8;}
+:root.dark .step-circle.done,html.dark .step-circle.done,[data-theme="dark"] .step-circle.done,body.dark .step-circle.done{background:rgba(129,140,248,.15);border-color:rgba(129,140,248,.4);color:#818CF8;}
+:root.dark .step-circle.active,html.dark .step-circle.active,[data-theme="dark"] .step-circle.active,body.dark .step-circle.active{background:#6366F1;border-color:#6366F1;}
+.step-line{width:4rem;height:2px;background:var(--border);margin:0 .5rem;}
+.step-line.done{background:var(--primary);}
+:root.dark .step-line.done,html.dark .step-line.done,[data-theme="dark"] .step-line.done,body.dark .step-line.done{background:#818CF8;}
+
+/* ── CARDS ───────────────────────────────────────────────────── */
+.pay-card{background:var(--surface-1);border:1px solid var(--border);border-radius:20px;padding:2rem;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;}
+.pay-card-title{font-size:1.125rem;font-weight:700;color:var(--text-primary);margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem;}
+.pay-card-title i{width:36px;height:36px;border-radius:10px;background:rgba(45,42,110,.08);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:.9rem;}
+:root.dark .pay-card-title i,html.dark .pay-card-title i,[data-theme="dark"] .pay-card-title i,body.dark .pay-card-title i{background:rgba(129,140,248,.12);color:#818CF8;}
+
+/* ── PAYMENT METHOD OPTIONS ──────────────────────────────────── */
+.pm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.875rem;margin-bottom:1.25rem;}
+@media(max-width:640px){.pm-grid{grid-template-columns:1fr 1fr;}}
+.pm-label{cursor:pointer;user-select:none;}
+.pm-label input{position:absolute;opacity:0;pointer-events:none;}
+.pm-box{background:var(--surface-2);border:2px solid var(--border);border-radius:14px;padding:1.125rem .75rem;display:flex;flex-direction:column;align-items:center;gap:.5rem;transition:all .25s var(--ease);text-align:center;}
+.pm-box:hover{border-color:rgba(45,42,110,.25);background:var(--surface-3);}
+.pm-label input:checked~.pm-box{border-color:var(--primary);background:rgba(45,42,110,.06);box-shadow:0 0 0 4px rgba(45,42,110,.08);}
+:root.dark .pm-label input:checked~.pm-box,html.dark .pm-label input:checked~.pm-box,[data-theme="dark"] .pm-label input:checked~.pm-box,body.dark .pm-label input:checked~.pm-box{border-color:#818CF8;background:rgba(129,140,248,.1);box-shadow:0 0 0 4px rgba(129,140,248,.12);}
+.pm-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.875rem;}
+.pm-name{font-size:.875rem;font-weight:600;color:var(--text-primary);}
+.pm-sub{font-size:.7rem;color:var(--text-tertiary);margin-top:1px;}
+
+/* ── FORM INPUTS ─────────────────────────────────────────────── */
+.form-group{display:flex;flex-direction:column;gap:.375rem;}
+.form-label{font-size:.875rem;font-weight:600;color:var(--text-secondary);}
+.form-label .required{color:var(--danger);margin-left:2px;}
+.form-input{padding:.875rem 1rem;background:var(--surface-1);border:1.5px solid var(--border);border-radius:12px;font-size:.9375rem;color:var(--text-primary);font-family:'Inter',sans-serif;transition:all .25s var(--ease);outline:none;width:100%;}
+.form-input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(45,42,110,.09);}
+.form-input::placeholder{color:var(--text-tertiary);}
+:root.dark .form-input:focus,html.dark .form-input:focus,[data-theme="dark"] .form-input:focus,body.dark .form-input:focus{border-color:#818CF8;box-shadow:0 0 0 4px rgba(129,140,248,.15);}
+.form-input.error{border-color:var(--danger);box-shadow:0 0 0 3px rgba(220,38,38,.1);}
+.form-input.valid{border-color:var(--success);box-shadow:0 0 0 3px rgba(22,163,74,.09);}
+.form-input.mono{font-family:'JetBrains Mono',monospace;letter-spacing:.05em;}
+.field-hint{font-size:.75rem;color:var(--text-tertiary);margin-top:.25rem;}
+.field-error{font-size:.75rem;color:var(--danger);margin-top:.25rem;display:none;}
+.field-error.show{display:block;}
+select.form-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:2.5rem;-webkit-appearance:none;appearance:none;}
+
+/* ── CARD NUMBER VISUAL ──────────────────────────────────────── */
+.card-visual{background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary) 60%,var(--primary-light) 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;position:relative;overflow:hidden;margin-bottom:1.5rem;box-shadow:var(--shadow-lg);}
+.card-visual::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.06);}
+.card-visual::after{content:'';position:absolute;bottom:-60px;left:-20px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.04);}
+.card-chip{width:40px;height:30px;background:linear-gradient(135deg,#FFD700,#FFA500);border-radius:6px;margin-bottom:1.25rem;position:relative;z-index:1;}
+.card-number-display{font-family:'JetBrains Mono',monospace;font-size:1.25rem;letter-spacing:.2em;margin-bottom:1.25rem;position:relative;z-index:1;}
+.card-bottom{display:flex;justify-content:space-between;position:relative;z-index:1;}
+.card-bottom-label{font-size:.6875rem;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:.25rem;}
+.card-bottom-value{font-size:.9375rem;font-weight:600;}
+.card-type-badge{position:absolute;top:1.25rem;right:1.25rem;font-size:1.75rem;z-index:1;}
+
+/* ── CVV MASK ────────────────────────────────────────────────── */
+.cvv-wrapper{position:relative;}
+.cvv-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text-tertiary);transition:color .2s;background:none;border:none;padding:4px;}
+.cvv-eye:hover{color:var(--primary);}
+
+/* ── SECURITY BADGES ─────────────────────────────────────────── */
+.sec-strip{display:flex;align-items:center;justify-content:center;gap:1.5rem;padding:1rem;background:linear-gradient(135deg,rgba(22,163,74,.06) 0%,rgba(22,163,74,.03) 100%);border:1px solid rgba(22,163,74,.15);border-radius:14px;flex-wrap:wrap;}
+.sec-badge{display:flex;align-items:center;gap:.4rem;font-size:.75rem;font-weight:600;color:var(--success);}
+.sec-badge i{font-size:.875rem;}
+
+/* ── DETAIL PANEL ────────────────────────────────────────────── */
+.detail-section{margin-bottom:1rem;}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:.625rem 0;border-bottom:1px solid var(--border-light);}
+.detail-row:last-child{border-bottom:none;}
+.detail-row-label{font-size:.9rem;color:var(--text-secondary);}
+.detail-row-value{font-size:.9rem;font-weight:600;color:var(--text-primary);}
+.detail-row-value.discount{color:var(--success);}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:1rem 0 0;}
+.total-label{font-size:1.125rem;font-weight:700;color:var(--text-primary);}
+.total-value{font-size:1.5rem;font-weight:800;color:var(--text-primary);font-family:'JetBrains Mono',monospace;}
+.divider{height:1px;background:var(--border);margin:1rem 0;}
+
+/* ── ORDER ITEM ──────────────────────────────────────────────── */
+.order-item{display:flex;align-items:center;gap:1rem;padding:.875rem;background:var(--surface-2);border-radius:12px;margin-bottom:.75rem;}
+.order-item-icon{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.125rem;flex-shrink:0;}
+.order-item-name{font-weight:600;font-size:.9375rem;color:var(--text-primary);}
+.order-item-qty{font-size:.8125rem;color:var(--text-tertiary);margin-top:2px;}
+.order-item-price{margin-left:auto;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text-primary);}
+
+/* ── PAY BUTTON ──────────────────────────────────────────────── */
+.btn-pay{width:100%;padding:1.125rem;background:var(--primary);color:#fff;border:none;border-radius:14px;font-size:1.0625rem;font-weight:700;letter-spacing:-.01em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem;transition:all .3s var(--ease);box-shadow:0 4px 16px rgba(45,42,110,.3);margin-bottom:.875rem;}
+.btn-pay:disabled{opacity:.55;cursor:not-allowed;transform:none!important;box-shadow:none!important;}
+.btn-pay:not(:disabled):hover{background:var(--primary-dark);transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,42,110,.4);}
+.btn-pay.loading{pointer-events:none;}
+:root.dark .btn-pay,html.dark .btn-pay,[data-theme="dark"] .btn-pay,body.dark .btn-pay{background:#6366F1;box-shadow:0 4px 16px rgba(99,102,241,.3);}
+:root.dark .btn-pay:not(:disabled):hover,html.dark .btn-pay:not(:disabled):hover,[data-theme="dark"] .btn-pay:not(:disabled):hover,body.dark .btn-pay:not(:disabled):hover{background:#4F46E5;box-shadow:0 8px 24px rgba(99,102,241,.45);}
+
+/* ── RATE LIMIT TOAST ────────────────────────────────────────── */
+.toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem;}
+.toast{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:.875rem 1.25rem;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:.75rem;min-width:280px;animation:slideIn .3s var(--ease);}
+.toast.error{border-color:rgba(220,38,38,.3);background:rgba(220,38,38,.05);}
+.toast.success{border-color:rgba(22,163,74,.3);background:rgba(22,163,74,.05);}
+.toast.warning{border-color:rgba(217,119,6,.3);background:rgba(217,119,6,.05);}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px);}to{opacity:1;transform:translateX(0);}}
+
+/* ── HELP LINKS ──────────────────────────────────────────────── */
+.help-link{display:flex;align-items:center;gap:.75rem;padding:.875rem 1rem;border-radius:12px;font-size:.9rem;font-weight:500;color:var(--text-secondary);text-decoration:none;transition:all .2s ease;cursor:pointer;}
+.help-link:hover{background:var(--surface-3);color:var(--text-primary);}
+.help-link i{width:32px;height:32px;border-radius:8px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-size:.875rem;color:var(--primary);transition:all .2s;}
+:root.dark .help-link i,html.dark .help-link i,[data-theme="dark"] .help-link i,body.dark .help-link i{color:#818CF8;}
+.help-link:hover i{background:rgba(45,42,110,.1);}
+
+/* ── PARTNER LOGOS ───────────────────────────────────────────── */
+.partner-logo{width:80px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.875rem;border:1px solid var(--border);background:var(--surface-1);transition:all .25s ease;}
+.partner-logo:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);}
+
+/* ── FAQ CARDS ───────────────────────────────────────────────── */
+.faq-card{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:1.5rem;transition:all .3s var(--ease);}
+.faq-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);}
+.faq-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;font-size:1rem;}
+
+/* ── SUCCESS MODAL ───────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--surface-1);border:1px solid var(--border);border-radius:24px;padding:2.5rem;max-width:480px;width:100%;box-shadow:var(--shadow-xl);animation:popIn .4s var(--ease);}
+@keyframes popIn{from{opacity:0;transform:scale(.9) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.success-icon{width:80px;height:80px;border-radius:50%;background:rgba(22,163,74,.1);border:3px solid rgba(22,163,74,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2rem;color:var(--success);}
+
+/* ── MISC ────────────────────────────────────────────────────── */
+.gradient-text{background:linear-gradient(135deg,var(--primary) 0%,#5B58B8 40%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+:root.dark .gradient-text,html.dark .gradient-text,[data-theme="dark"] .gradient-text,body.dark .gradient-text{background:linear-gradient(135deg,#818CF8 0%,#C084FC 40%,#F472B6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.section-fade{animation:fadeUp .7s var(--ease) backwards;}
+.d1{animation-delay:.05s}.d2{animation-delay:.12s}.d3{animation-delay:.19s}.d4{animation-delay:.26s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+.detail-panel-sticky{position:sticky;top:5.5rem;}
+@media(max-width:1024px){.detail-panel-sticky{position:static;}}
+.info-box{padding:.875rem 1rem;border-radius:12px;display:flex;align-items:flex-start;gap:.75rem;font-size:.875rem;font-weight:500;}
+.info-box.info{background:rgba(59,130,246,.07);color:#1D4ED8;border:1px solid rgba(59,130,246,.15);}
+.info-box i{margin-top:1px;flex-shrink:0;}
+.checkbox-row{display:flex;align-items:flex-start;gap:.875rem;padding:1.25rem;background:var(--surface-2);border-radius:12px;}
+.checkbox-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;margin-top:2px;}
+.checkbox-label{font-size:.9rem;color:var(--text-secondary);line-height:1.55;}
+.checkbox-label a{color:var(--primary);font-weight:600;text-decoration:none;}
+.checkbox-label a:hover{text-decoration:underline;}
+:root.dark .checkbox-label a,html.dark .checkbox-label a,[data-theme="dark"] .checkbox-label a,body.dark .checkbox-label a{color:#818CF8;}
+/* Honeypot anti-bot */
+.hp-field{position:absolute;left:-9999px;opacity:0;pointer-events:none;tab-index:-1;}
+</style>
+
+<div class="min-h-screen py-10">
+<div class="container mx-auto px-4" style="max-width:1140px;">
+
+    <!-- ── TITRE ───────────────────────────────────────────────── -->
+    <div class="text-center mb-2 section-fade">
+        <h1 class="text-4xl md:text-5xl font-display font-bold mb-2">
+            Paiement <span class="gradient-text">Sécurisé</span>
+        </h1>
+        <p style="color:var(--text-secondary);font-size:.975rem;">Vos données sont chiffrées et protégées — SSL 256-bit</p>
+    </div>
+
+    <!-- ── STEPPER ─────────────────────────────────────────────── -->
+    <div class="stepper section-fade d1">
+        <div class="step">
+            <div class="step-circle done"><i class="fas fa-check" style="font-size:.75rem;"></i></div>
+            <span class="step-label done">Panier</span>
+        </div>
+        <div class="step-line done"></div>
+        <div class="step">
+            <div class="step-circle done"><i class="fas fa-check" style="font-size:.75rem;"></i></div>
+            <span class="step-label done">Livraison</span>
+        </div>
+        <div class="step-line done"></div>
+        <div class="step">
+            <div class="step-circle active">3</div>
+            <span class="step-label active">Paiement</span>
+        </div>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:2rem;align-items:flex-start;">
+        <!-- ══════════════════════════════════════════════════════
+             COLONNE GAUCHE : formulaires
+        ═══════════════════════════════════════════════════════ -->
+        <div style="flex:1;min-width:300px;">
+
+            <!-- ── MÉTHODES DE PAIEMENT ──────────────────────── -->
+            <div class="pay-card section-fade d2">
+                <h3 class="pay-card-title">
+                    <i class="fas fa-wallet"></i>
+                    Méthodes de paiement
+                </h3>
+
+                <!-- Mobile Money -->
+                <p style="font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-tertiary);margin-bottom:.875rem;">
+                    <i class="fas fa-mobile-alt" style="margin-right:.4rem;"></i>Mobile Money
+                </p>
+                <div class="pm-grid" style="grid-template-columns:repeat(3,1fr);">
+                    <label class="pm-label">
+                        <input type="radio" name="pm" value="mtn" id="pm-mtn" checked>
+                        <div class="pm-box">
+                            <div class="pm-icon" style="background:#FEF9C3;color:#854D0E;">MTN</div>
+                            <span class="pm-name">MTN MoMo</span>
+                            <span class="pm-sub">Bénin</span>
+                        </div>
+                    </label>
+                    <label class="pm-label">
+                        <input type="radio" name="pm" value="moov" id="pm-moov">
+                        <div class="pm-box">
+                            <div class="pm-icon" style="background:#FFEDD5;color:#9A3412;">Moov</div>
+                            <span class="pm-name">Moov Money</span>
+                            <span class="pm-sub">Bénin</span>
+                        </div>
+                    </label>
+                    <label class="pm-label">
+                        <input type="radio" name="pm" value="flooz" id="pm-flooz">
+                        <div class="pm-box">
+                            <div class="pm-icon" style="background:#DCFCE7;color:#166534;">Flooz</div>
+                            <span class="pm-name">Flooz</span>
+                            <span class="pm-sub">Togo & Bénin</span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Wallet / banque -->
+                <p style="font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-tertiary);margin:.75rem 0 .875rem;">
+                    <i class="fas fa-university" style="margin-right:.4rem;"></i>Virement & Wallet
+                </p>
+                <div class="pm-grid" style="grid-template-columns:repeat(2,1fr);">
+                    <label class="pm-label">
+                        <input type="radio" name="pm" value="bank" id="pm-bank">
+                        <div class="pm-box" style="flex-direction:row;justify-content:flex-start;gap:.75rem;">
+                            <div class="pm-icon" style="background:#DBEAFE;color:#1E40AF;"><i class="fas fa-university"></i></div>
+                            <div style="text-align:left;">
+                                <span class="pm-name">Virement local</span>
+                                <span class="pm-sub" style="display:block;">Banques béninoises</span>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="pm-label">
+                        <input type="radio" name="pm" value="wave" id="pm-wave">
+                        <div class="pm-box" style="flex-direction:row;justify-content:flex-start;gap:.75rem;">
+                            <div class="pm-icon" style="background:#F3E8FF;color:#7E22CE;">W</div>
+                            <div style="text-align:left;">
+                                <span class="pm-name">Wave</span>
+                                <span class="pm-sub" style="display:block;">Instantané</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Cartes bancaires -->
+                <p style="font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-tertiary);margin:.75rem 0 .875rem;">
+                    <i class="fas fa-credit-card" style="margin-right:.4rem;"></i>Cartes bancaires
+                </p>
+                <div class="pm-grid" style="grid-template-columns:repeat(2,1fr);">
+                    <label class="pm-label">
+                        <input type="radio" name="pm" value="visa" id="pm-visa">
+                        <div class="pm-box" style="flex-direction:row;gap:.75rem;">
+                            <i class="fab fa-cc-visa" style="font-size:1.75rem;color:#1A1F71;"></i>
+                            <span class="pm-name">Visa</span>
+                        </div>
+                    </label>
+                    <label class="pm-label">
+                        <input type="radio" name="pm" value="mastercard" id="pm-mc">
+                        <div class="pm-box" style="flex-direction:row;gap:.75rem;">
+                            <i class="fab fa-cc-mastercard" style="font-size:1.75rem;color:#EB001B;"></i>
+                            <span class="pm-name">Mastercard</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- ── DÉTAILS PAIEMENT (dynamiques) ────────────── -->
+
+            <!-- Mobile Money details -->
+            <div id="section-mobile" class="pay-card section-fade d2">
+                <h3 class="pay-card-title">
+                    <i class="fas fa-sim-card"></i>
+                    Numéro Mobile Money
+                </h3>
+                <div class="form-group">
+                    <label class="form-label">Numéro de téléphone <span class="required">*</span></label>
+                    <input type="tel" id="phone-input" class="form-input mono"
+                           placeholder="+229 XX XX XX XX"
+                           maxlength="17"
+                           autocomplete="tel"
+                           inputmode="tel">
+                    <span class="field-hint"><i class="fas fa-lock" style="font-size:.65rem;"></i> Numéro chiffré — jamais stocké en clair</span>
+                    <span class="field-error" id="phone-error">Format invalide. Exemple : +229 01 23 45 67</span>
+                </div>
+                <div class="info-box info" style="margin-top:1rem;">
+                    <i class="fas fa-bell"></i>
+                    <span>Vous recevrez une confirmation push sur votre téléphone. Vous avez <strong>90 secondes</strong> pour valider.</span>
+                </div>
+            </div>
+
+            <!-- Card details -->
+            <div id="section-card" class="pay-card section-fade d2" style="display:none;">
+                <h3 class="pay-card-title">
+                    <i class="fas fa-credit-card"></i>
+                    Informations de carte
+                </h3>
+
+                <!-- Visual card -->
+                <div class="card-visual" id="card-preview">
+                    <div class="card-type-badge" id="card-type-icon"><i class="fas fa-credit-card"></i></div>
+                    <div class="card-chip"></div>
+                    <div class="card-number-display" id="card-num-display">•••• •••• •••• ••••</div>
+                    <div class="card-bottom">
+                        <div>
+                            <div class="card-bottom-label">Titulaire</div>
+                            <div class="card-bottom-value" id="card-name-display">VOTRE NOM</div>
+                        </div>
+                        <div>
+                            <div class="card-bottom-label">Expire</div>
+                            <div class="card-bottom-value" id="card-exp-display">MM/AA</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                    <div class="form-group" style="grid-column:1/-1;">
+                        <label class="form-label">Numéro de carte <span class="required">*</span></label>
+                        <input type="text" id="card-number" class="form-input mono"
+                               placeholder="•••• •••• •••• ••••"
+                               maxlength="19" autocomplete="cc-number"
+                               inputmode="numeric">
+                        <span class="field-error" id="card-num-error">Numéro de carte invalide</span>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1;">
+                        <label class="form-label">Nom sur la carte <span class="required">*</span></label>
+                        <input type="text" id="card-name" class="form-input"
+                               placeholder="JEAN DUPONT"
+                               maxlength="40" autocomplete="cc-name"
+                               style="text-transform:uppercase;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Expiration <span class="required">*</span></label>
+                        <input type="text" id="card-exp" class="form-input mono"
+                               placeholder="MM/AA" maxlength="5"
+                               autocomplete="cc-exp" inputmode="numeric">
+                        <span class="field-error" id="card-exp-error">Date expirée ou invalide</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CVV <span class="required">*</span>
+                            <span style="font-size:.7rem;font-weight:400;color:var(--text-tertiary);">(3-4 chiffres)</span>
+                        </label>
+                        <div class="cvv-wrapper">
+                            <input type="password" id="card-cvv" class="form-input mono"
+                                   placeholder="•••" maxlength="4"
+                                   autocomplete="cc-csc" inputmode="numeric">
+                            <button type="button" class="cvv-eye" id="cvv-toggle" title="Afficher/masquer">
+                                <i class="fas fa-eye-slash"></i>
+                            </button>
+                        </div>
+                        <span class="field-hint"><i class="fas fa-info-circle" style="font-size:.65rem;"></i> 3 chiffres au dos, 4 pour Amex</span>
+                        <span class="field-error" id="card-cvv-error">CVV invalide</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bank transfer details -->
+            <div id="section-bank" class="pay-card section-fade d2" style="display:none;">
+                <h3 class="pay-card-title"><i class="fas fa-university"></i>Coordonnées bancaires</h3>
+                <div style="display:flex;flex-direction:column;gap:.625rem;">
+                    <div class="detail-row">
+                        <span class="detail-row-label">Banque</span>
+                        <span class="detail-row-value">ECOBANK Bénin</span>
+                    </div>
+                    <div class="detail-row" style="flex-wrap:wrap;gap:.5rem;">
+                        <span class="detail-row-label">IBAN</span>
+                        <span class="detail-row-value font-mono" style="font-size:.8125rem;word-break:break-all;">BJ66 BJ06 1010 0101 2345 6789 012</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-row-label">SWIFT/BIC</span>
+                        <span class="detail-row-value font-mono">ECOCBJBJ</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-row-label">Titulaire</span>
+                        <span class="detail-row-value">SYNERGYCRAFT SARL</span>
+                    </div>
+                </div>
+                <div class="info-box info" style="margin-top:1rem;">
+                    <i class="fas fa-envelope"></i>
+                    <span>Envoyez le reçu à <strong>payments@synergycraft.bj</strong> pour activation.</span>
+                </div>
+            </div>
+
+            <!-- Paiement échelonné -->
+            <div class="pay-card section-fade d2">
+                <h3 class="pay-card-title"><i class="fas fa-calendar-alt"></i>Paiement échelonné</h3>
+                <div class="info-box info" style="margin-bottom:1rem;">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Payez en 2 ou 3 fois <strong>sans frais</strong> — disponible dès 500 FCFA.</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nombre de versements</label>
+                    <select id="installments" class="form-input">
+                        <option value="1" selected>Paiement unique</option>
+                        <option value="2">2 versements — 50% maintenant, 50% dans 30 j.</option>
+                        <option value="3">3 versements — 33% / 33% / 34% sur 60 j.</option>
+                    </select>
+                </div>
+                <div id="installment-preview" style="display:none;margin-top:.875rem;padding:.875rem;background:var(--surface-2);border-radius:12px;font-size:.875rem;color:var(--text-secondary);"></div>
+            </div>
+
+            <!-- Informations de facturation -->
+            <div class="pay-card section-fade d3">
+                <h3 class="pay-card-title"><i class="fas fa-file-invoice"></i>Informations de facturation</h3>
+                <!-- Anti-bot honeypot (caché) -->
+                <div class="hp-field" aria-hidden="true">
+                    <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="billing-name">Nom complet <span class="required">*</span></label>
+                        <input type="text" id="billing-name" class="form-input" placeholder="Jean Dupont"
+                               autocomplete="name" maxlength="80" pattern="[A-Za-zÀ-ÿ\s\-]{2,}">
+                        <span class="field-error" id="name-error">Nom invalide</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="billing-email">Email <span class="required">*</span></label>
+                        <input type="email" id="billing-email" class="form-input" placeholder="jean@example.com"
+                               autocomplete="email" maxlength="100">
+                        <span class="field-error" id="email-error">Email invalide</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="billing-phone">Téléphone <span class="required">*</span></label>
+                        <input type="tel" id="billing-phone" class="form-input" placeholder="+229 01 23 45 67"
+                               autocomplete="tel" maxlength="17" inputmode="tel">
+                        <span class="field-error" id="billing-phone-error">Numéro invalide</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="billing-company">Entreprise <span style="font-weight:400;color:var(--text-tertiary);">(optionnel)</span></label>
+                        <input type="text" id="billing-company" class="form-input" placeholder="SARL MonEntreprise"
+                               autocomplete="organization" maxlength="100">
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1;">
+                        <label class="form-label" for="billing-address">Adresse <span class="required">*</span></label>
+                        <input type="text" id="billing-address" class="form-input" placeholder="Rue, Quartier, Ville"
+                               autocomplete="street-address" maxlength="200">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="billing-city">Ville <span class="required">*</span></label>
+                        <select id="billing-city" class="form-input" autocomplete="address-level2">
+                            <option value="" disabled selected>Choisir…</option>
+                            <option>Cotonou</option><option>Porto-Novo</option><option>Parakou</option>
+                            <option>Abomey-Calavi</option><option>Natitingou</option><option>Autre</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="billing-zip">Code postal</label>
+                        <input type="text" id="billing-zip" class="form-input" placeholder="01 BP 1234"
+                               autocomplete="postal-code" maxlength="20">
+                    </div>
+                </div>
+            </div>
+
+            <!-- CGV -->
+            <div class="pay-card section-fade d3">
+                <div class="checkbox-row">
+                    <input type="checkbox" id="terms-checkbox">
+                    <label class="checkbox-label" for="terms-checkbox">
+                        J'accepte les <a href="#">conditions générales de vente</a> et la
+                        <a href="#">politique de confidentialité</a>. Mon paiement est traité
+                        de manière sécurisée avec une garantie de satisfaction de <strong>30 jours</strong>.
+                    </label>
+                    {% csrf_token %}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════
+             COLONNE DROITE : résumé + CTA
+        ═══════════════════════════════════════════════════════ -->
+        <div style="width:360px;min-width:300px;flex-shrink:0;">
+            <div class="detail-panel-sticky">
+
+                <!-- Résumé commande -->
+                <div class="pay-card section-fade d2">
+                    <h3 class="pay-card-title"><i class="fas fa-receipt"></i>Résumé de commande</h3>
+
+                    <div id="order-items">
+                        {% if order %}
+                        <div class="order-item">
+                            <div class="order-item-icon" style="background:rgba(45,42,110,.1);color:var(--primary);">
+                                <i class="fas fa-cube"></i>
+                            </div>
+                            <div>
+                                <div class="order-item-name">{{ order.service.title }}</div>
+                                <div class="order-item-qty">× 1</div>
+                            </div>
+                            <span class="order-item-price">{{ order.service.price|floatformat:0 }} FCFA</span>
+                        </div>
+                        {% else %}
+                        <div class="flex flex-col items-center justify-center py-10 text-center">
+                            <i class="fas fa-shopping-cart fa-3x text-gray-500 mb-3"></i>
+                            <p class="text-gray-400 mb-2">Aucun article dans le panier</p>
+                            <a href="{% url 'catalogue' %}" class="text-indigo-400 hover:text-indigo-300 font-semibold">Parcourir le catalogue</a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if order %}
+                    <div class="divider"></div>
+
+                    <div class="detail-section">
+                        <div class="detail-row">
+                            <span class="detail-row-label">Sous-total</span>
+                            <span class="detail-row-value font-mono">{{ order.service.price|floatformat:0 }} FCFA</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-row-label">Réduction</span>
+                            <span class="detail-row-value discount">-0 FCFA</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-row-label">TVA (18%)</span>
+                            <span class="detail-row-value font-mono">{{ tva }} FCFA</span>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="total-row">
+                        <span class="total-label">Total à payer</span>
+                        <span class="total-value" id="final-total">{{ total }} FCFA</span>
+                    </div>
+                    <p style="font-size:.75rem;color:var(--text-tertiary);margin-top:.35rem;text-align:right;">TVA incluse</p>
+
+                    <!-- Sécurité SSL -->
+                    <div class="sec-strip" style="margin-top:1.25rem;">
+                        <span class="sec-badge"><i class="fas fa-lock"></i>SSL 256-bit</span>
+                        <span class="sec-badge"><i class="fas fa-shield-alt"></i>PCI DSS</span>
+                        <span class="sec-badge"><i class="fas fa-user-shield"></i>RGPD</span>
+                    </div>
+                </div>
+
+                <!-- Bouton payer -->
+                <button id="pay-button" class="btn-pay" disabled>
+                    <i class="fas fa-lock"></i> Payer maintenant
+                </button>
+                {% endif %}
+
+                <!-- Support -->
+                <div class="pay-card" style="padding:1rem 1.25rem;">
+                    <div style="display:flex;align-items:center;gap:.75rem;font-size:.875rem;">
+                        <div style="width:36px;height:36px;border-radius:10px;background:rgba(59,130,246,.1);color:#1D4ED8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <div>
+                            <p style="font-weight:600;color:var(--text-primary);">Support Bénin</p>
+                            <p style="color:var(--text-tertiary);font-size:.8rem;">+229 21 30 45 60</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aide paiement -->
+                <div class="pay-card" style="padding:1.25rem;">
+                    <h4 style="font-size:.9375rem;font-weight:700;color:var(--text-primary);margin-bottom:.75rem;">Aide au paiement</h4>
+                    <a href="#" class="help-link"><i class="fas fa-question-circle"></i>Problème Mobile Money ?</a>
+                    <a href="#" class="help-link"><i class="fas fa-phone"></i>Payer par téléphone</a>
+                    <a href="#" class="help-link"><i class="fas fa-file-invoice"></i>Facture proforma</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ── FAQ ─────────────────────────────────────────────────── -->
+    <div style="margin-top:4rem;" class="section-fade d4">
+        <h3 style="font-size:1.75rem;font-weight:700;text-align:center;margin-bottom:2rem;color:var(--text-primary);">
+            Paiements en <span class="gradient-text">Afrique</span>
+        </h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem;">
+            <div class="faq-card">
+                <div class="faq-icon" style="background:rgba(45,42,110,.08);"><i class="fas fa-mobile-alt" style="color:var(--primary);"></i></div>
+                <h4 style="font-weight:700;margin-bottom:.5rem;color:var(--text-primary);">Mobile Money</h4>
+                <p style="font-size:.875rem;color:var(--text-secondary);line-height:1.65;">Paiement sécurisé via MTN, Moov ou Flooz. Confirmation push sur votre mobile en temps réel.</p>
+            </div>
+            <div class="faq-card">
+                <div class="faq-icon" style="background:rgba(59,130,246,.08);"><i class="fas fa-university" style="color:#2563EB;"></i></div>
+                <h4 style="font-weight:700;margin-bottom:.5rem;color:var(--text-primary);">Virement local</h4>
+                <p style="font-size:.875rem;color:var(--text-secondary);line-height:1.65;">Transférez depuis ECOBANK, BOA, BGFI et toutes les banques béninoises agréées.</p>
+            </div>
+            <div class="faq-card">
+                <div class="faq-icon" style="background:rgba(22,163,74,.08);"><i class="fas fa-shield-alt" style="color:var(--success);"></i></div>
+                <h4 style="font-weight:700;margin-bottom:.5rem;color:var(--text-primary);">Paiement sécurisé</h4>
+                <p style="font-size:.875rem;color:var(--text-secondary);line-height:1.65;">Chiffrement SSL 256-bit, conformité PCI DSS et RGPD. Vos données ne sont jamais stockées en clair.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── PARTENAIRES ─────────────────────────────────────────── -->
+    <div style="margin-top:3rem;text-align:center;" class="section-fade d4">
+        <p style="font-size:.8125rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-tertiary);margin-bottom:1.25rem;">Partenaires de paiement</p>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:.875rem;">
+            <div class="partner-logo" style="color:#854D0E;">MTN</div>
+            <div class="partner-logo" style="color:#9A3412;">Moov</div>
+            <div class="partner-logo" style="color:#166534;">Flooz</div>
+            <div class="partner-logo" style="color:#1D4ED8;">ECOBANK</div>
+            <div class="partner-logo" style="color:#7E22CE;">Wave</div>
+            <div class="partner-logo"><i class="fab fa-cc-visa" style="font-size:1.5rem;color:#1A1F71;"></i></div>
+            <div class="partner-logo"><i class="fab fa-cc-mastercard" style="font-size:1.5rem;color:#EB001B;"></i></div>
+        </div>
+    </div>
+
+</div><!-- /container -->
+</div><!-- /min-h-screen -->
+
+<!-- ── TOAST CONTAINER ────────────────────────────────────────── -->
+<div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+<!-- ── SUCCESS MODAL ──────────────────────────────────────────── -->
+<div class="modal-overlay" id="payment-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box">
+        <div class="success-icon"><i class="fas fa-check"></i></div>
+        <h2 id="modal-title" class="font-display" style="font-size:1.75rem;font-weight:700;text-align:center;margin-bottom:.75rem;color:var(--text-primary);">
+            Paiement réussi !
+        </h2>
+        <p style="text-align:center;color:var(--text-secondary);margin-bottom:1.5rem;font-size:.9375rem;">
+            Notre équipe vous contactera sous 24h pour démarrer votre projet.
+        </p>
+        <div style="background:var(--surface-2);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem;">
+            <div class="detail-row"><span class="detail-row-label">Référence</span><span class="detail-row-value font-mono" id="modal-ref">—</span></div>
+            <div class="detail-row"><span class="detail-row-label">Montant</span><span class="detail-row-value font-mono">{{ total|default:"588" }} FCFA</span></div>
+            <div class="detail-row"><span class="detail-row-label">Date</span><span class="detail-row-value" id="modal-date">—</span></div>
+        </div>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+            <button onclick="window.location.href='/'" style="flex:1;padding:.875rem;background:var(--primary);color:#fff;border:none;border-radius:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem;transition:all .2s;">
+                <i class="fas fa-home"></i> Accueil
+            </button>
+            <button onclick="window.print()" style="flex:1;padding:.875rem;background:var(--surface-2);color:var(--text-primary);border:1px solid var(--border);border-radius:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem;transition:all .2s;">
+                <i class="fas fa-print"></i> Reçu
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     JAVASCRIPT — Sécurité renforcée
+═══════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ── CONFIG ────────────────────────────────────────────────── */
+const RATE_LIMIT_MS   = 30000;  // 30s entre soumissions
+const MAX_ATTEMPTS    = 3;       // max tentatives avant blocage
+const SESSION_TIMEOUT = 900000;  // 15 min inactivité
+
+/* ── ÉTAT ──────────────────────────────────────────────────── */
+let attempts       = 0;
+let lastSubmit     = 0;
+let sessionTimer;
+
+/* ── UTILITAIRES ────────────────────────────────────────────── */
+const $  = id => document.getElementById(id);
+const $q = sel => document.querySelector(sel);
+
+// Échapper HTML pour prévenir XSS
+function escapeHTML(str){
+    return String(str)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+        .replace(/'/g,'&#039;');
+}
+
+// Toast notification
+function toast(msg, type='info', duration=4000){
+    const container = $('toast-container');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    const icons = {error:'fas fa-exclamation-circle',success:'fas fa-check-circle',warning:'fas fa-exclamation-triangle',info:'fas fa-info-circle'};
+    const colors = {error:'#DC2626',success:'#16A34A',warning:'#D97706',info:'#2563EB'};
+    el.innerHTML = `<i class="${icons[type]||icons.info}" style="color:${colors[type]||colors.info};font-size:1.1rem;flex-shrink:0;"></i><span style="font-size:.875rem;font-weight:500;color:var(--text-primary);">${escapeHTML(msg)}</span>`;
+    container.appendChild(el);
+    setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(40px)'; el.style.transition='all .3s ease'; setTimeout(()=>el.remove(),300); }, duration);
+}
+
+// Marquer champ valide/invalide
+function setFieldState(input, errorId, valid, msg=''){
+    input.classList.toggle('valid', valid);
+    input.classList.toggle('error', !valid);
+    if(errorId){
+        const err = $(errorId);
+        if(err){ err.textContent=msg||err.textContent; err.classList.toggle('show',!valid); }
+    }
+    return valid;
+}
+
+/* ── VALIDATIONS ────────────────────────────────────────────── */
+function luhn(num){
+    let sum=0, alt=false;
+    for(let i=num.length-1;i>=0;i--){
+        let n=parseInt(num[i],10);
+        if(alt){ n*=2; if(n>9)n-=9; }
+        sum+=n; alt=!alt;
+    }
+    return sum%10===0;
+}
+
+function validatePhone(val){
+    const clean = val.replace(/[\s\-]/g,'');
+    return /^\+229[0-9]{8,10}$/.test(clean) || /^0[0-9]{8,9}$/.test(clean);
+}
+
+function validateEmail(val){
+    return /^[^\s@]{1,64}@[^\s@]{1,253}\.[a-zA-Z]{2,}$/.test(val.trim());
+}
+
+function validateCardNumber(raw){
+    const clean = raw.replace(/\s/g,'');
+    return /^[0-9]{13,19}$/.test(clean) && luhn(clean);
+}
+
+function validateExpiry(val){
+    const m = val.match(/^(\d{2})\/(\d{2})$/);
+    if(!m) return false;
+    const month=parseInt(m[1],10), year=parseInt('20'+m[2],10);
+    if(month<1||month>12) return false;
+    const now=new Date(); const ey=now.getFullYear(); const em=now.getMonth()+1;
+    return year>ey || (year===ey && month>=em);
+}
+
+function validateCVV(val){ return /^[0-9]{3,4}$/.test(val.trim()); }
+
+/* ── AFFICHAGE DYNAMIQUE MÉTHODE ─────────────────────────────── */
+function showSection(id){
+    ['section-mobile','section-card','section-bank'].forEach(s=>{
+        const el=$(s); if(el) el.style.display = s===id ? 'block' : 'none';
+    });
+}
+
+document.querySelectorAll('input[name="pm"]').forEach(r=>{
+    r.addEventListener('change',function(){
+        const v = this.value;
+        if(['mtn','moov','flooz'].includes(v))   showSection('section-mobile');
+        else if(['visa','mastercard'].includes(v)) showSection('section-card');
+        else if(['bank','wave'].includes(v))       showSection('section-bank');
+        updatePayBtn();
+    });
+});
+
+/* ── FORMATAGE NUMÉRO MOBILE ─────────────────────────────────── */
+$('phone-input').addEventListener('input',function(){
+    let v = this.value.replace(/[^\d+\s]/g,'');
+    if(!v.startsWith('+') && v.replace(/\D/,'').startsWith('229')) v='+'+v.replace(/\D/,'');
+    this.value = v.substring(0,17);
+    const valid = validatePhone(v);
+    setFieldState(this,'phone-error',valid,'Format invalide. Ex : +229 01 23 45 67');
+    updatePayBtn();
+});
+
+/* ── CARTE BANCAIRE — formatage & visual ─────────────────────── */
+$('card-number').addEventListener('input',function(){
+    let v=this.value.replace(/\D/g,'').substring(0,16);
+    this.value = v.replace(/(.{4})/g,'$1 ').trim();
+    $('card-num-display').textContent = (v+'•'.repeat(Math.max(0,16-v.length))).replace(/(.{4})/g,'$1 ').trim();
+    // Détecter type carte
+    const icon=$('card-type-icon');
+    if(/^4/.test(v)) icon.innerHTML='<i class="fab fa-cc-visa" style="font-size:2rem;"></i>';
+    else if(/^5[1-5]|^2[2-7]/.test(v)) icon.innerHTML='<i class="fab fa-cc-mastercard" style="font-size:2rem;"></i>';
+    else icon.innerHTML='<i class="fas fa-credit-card"></i>';
+    const valid=validateCardNumber(this.value);
+    setFieldState(this,'card-num-error',valid,'Numéro de carte invalide (Luhn)');
+    updatePayBtn();
+});
+
+$('card-name').addEventListener('input',function(){
+    this.value=this.value.toUpperCase().replace(/[^A-Z\s\-]/g,'');
+    $('card-name-display').textContent = this.value.trim()||'VOTRE NOM';
+});
+
+$('card-exp').addEventListener('input',function(){
+    let v=this.value.replace(/\D/g,'');
+    if(v.length>2) v=v.slice(0,2)+'/'+v.slice(2,4);
+    this.value=v;
+    $('card-exp-display').textContent=this.value||'MM/AA';
+    const valid=validateExpiry(this.value);
+    setFieldState(this,'card-exp-error',valid,'Date expirée ou invalide');
+    updatePayBtn();
+});
+
+$('card-cvv').addEventListener('input',function(){
+    this.value=this.value.replace(/\D/g,'').substring(0,4);
+    const valid=validateCVV(this.value);
+    setFieldState(this,'card-cvv-error',valid,'CVV invalide');
+    updatePayBtn();
+});
+
+// Toggle visibilité CVV
+$('cvv-toggle').addEventListener('click',function(){
+    const inp=$('card-cvv');
+    const show=inp.type==='password';
+    inp.type=show?'text':'password';
+    this.querySelector('i').className=show?'fas fa-eye':'fas fa-eye-slash';
+    if(show) setTimeout(()=>{ inp.type='password'; $('cvv-toggle').querySelector('i').className='fas fa-eye-slash'; },3000);
+});
+
+/* ── INSTALLMENTS ────────────────────────────────────────────── */
+$('installments').addEventListener('change',function(){
+    const total=588, n=parseInt(this.value);
+    const preview=$('installment-preview');
+    if(n===1){ preview.style.display='none'; return; }
+    const amounts = n===2 ? [294,294] : [194,194,200];
+    const labels  = n===2 ? ['Aujourd\'hui','Dans 30 j.'] : ['Aujourd\'hui','Dans 30 j.','Dans 60 j.'];
+    preview.style.display='block';
+    preview.innerHTML = amounts.map((a,i)=>`<div style="display:flex;justify-content:space-between;padding:.3rem 0;font-size:.875rem;"><span style="color:var(--text-secondary);">${escapeHTML(labels[i])}</span><strong style="font-family:\'JetBrains Mono\',monospace;">${a} FCFA</strong></div>`).join('');
+});
+
+/* ── BILLING VALIDATION ──────────────────────────────────────── */
+$('billing-name').addEventListener('blur',function(){
+    setFieldState(this,'name-error',this.value.trim().length>=2,'Veuillez saisir votre nom complet');
+});
+$('billing-email').addEventListener('blur',function(){
+    setFieldState(this,'email-error',validateEmail(this.value),'Email invalide');
+});
+$('billing-phone').addEventListener('blur',function(){
+    setFieldState(this,'billing-phone-error',validatePhone(this.value),'Numéro invalide');
+});
+
+/* ── ENABLE/DISABLE BOUTON PAY ───────────────────────────────── */
+function updatePayBtn(){
+    const method    = document.querySelector('input[name="pm"]:checked')?.value;
+    const terms     = $('terms-checkbox').checked;
+    const email     = validateEmail($('billing-email').value);
+    const name      = $('billing-name').value.trim().length>=2;
+    const phone     = validatePhone($('billing-phone').value);
+    const address   = $('billing-address').value.trim().length>3;
+    const city      = $('billing-city').value!=='';
+
+    let methodOk = false;
+    if(['mtn','moov','flooz'].includes(method)) methodOk = validatePhone($('phone-input').value);
+    else if(['visa','mastercard'].includes(method)){
+        methodOk = validateCardNumber($('card-number').value) &&
+                   validateExpiry($('card-exp').value) &&
+                   validateCVV($('card-cvv').value);
+    } else if(['bank','wave'].includes(method)) methodOk = true;
+
+    $('pay-button').disabled = !(terms && methodOk && email && name && phone && address && city);
+}
+
+$('terms-checkbox').addEventListener('change', updatePayBtn);
+['billing-name','billing-email','billing-phone','billing-address','billing-city']
+    .forEach(id=>$(id)&&$(id).addEventListener('input',updatePayBtn));
+
+/* ── SOUMISSION + RATE LIMITING + ANTI-BOT ──────────────────── */
+$('pay-button').addEventListener('click',function(){
+
+    // Anti-bot honeypot
+    if($('hp-website').value){ toast('Erreur de validation','error'); return; }
+
+    // Rate limit
+    const now = Date.now();
+    if(now - lastSubmit < RATE_LIMIT_MS){
+        const remaining = Math.ceil((RATE_LIMIT_MS-(now-lastSubmit))/1000);
+        toast(`Veuillez patienter ${remaining}s avant de réessayer.`,'warning'); return;
+    }
+
+    if(attempts >= MAX_ATTEMPTS){
+        toast('Trop de tentatives. Veuillez contacter notre support.','error'); return;
+    }
+
+    // Vérification finale billing
+    const emailOk = validateEmail($('billing-email').value);
+    const nameOk  = $('billing-name').value.trim().length>=2;
+    if(!emailOk||!nameOk){
+        toast('Veuillez remplir tous les champs obligatoires.','error'); return;
+    }
+
+    // Soumission vers l'API
+    attempts++;
+    lastSubmit = now;
+    this.disabled = true;
+    this.classList.add('loading');
+    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement sécurisé…';
+
+    const orderId = '{{ order.pk|default:"" }}';
+    if (!orderId) {
+        // Fallback simulation si pas de commande
+        setTimeout(()=>{
+            this.innerHTML = '<i class="fas fa-lock"></i> Payer maintenant';
+            this.classList.remove('loading');
+            const ref = 'SYN-'+(Date.now().toString(36).toUpperCase());
+            const now2 = new Date();
+            $('modal-ref').textContent  = ref;
+            $('modal-date').textContent = now2.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+            $('payment-modal').classList.add('open');
+        }, 2200);
+        return;
+    }
+
+    const method = document.querySelector('input[name="pm"]:checked')?.value;
+    const providerMap = {mtn:'momo',moov:'momo',flooz:'momo',visa:'stripe',mastercard:'stripe',bank:'stripe',wave:'momo'};
+    const provider = providerMap[method] || 'stripe';
+
+    const csrf = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+    fetch('/api/payments/create/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf,
+        },
+        body: JSON.stringify({
+            order_id: parseInt(orderId),
+            provider: provider,
+        }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        this.innerHTML = '<i class="fas fa-lock"></i> Payer maintenant';
+        this.classList.remove('loading');
+        if (data.error) {
+            toast(data.error || 'Erreur de paiement', 'error');
+            this.disabled = false;
+            return;
+        }
+        const ref = data.reference || 'SYN-'+(Date.now().toString(36).toUpperCase());
+        const now2 = new Date();
+        $('modal-ref').textContent  = ref;
+        $('modal-date').textContent = now2.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+        $('payment-modal').classList.add('open');
+    })
+    .catch(err => {
+        this.innerHTML = '<i class="fas fa-lock"></i> Payer maintenant';
+        this.classList.remove('loading');
+        this.disabled = false;
+        toast('Erreur de connexion. Veuillez réessayer.', 'error');
+    });
+});
+
+// Fermer modal en cliquant backdrop
+$('payment-modal').addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
+
+/* ── SESSION TIMEOUT ─────────────────────────────────────────── */
+function resetTimer(){
+    clearTimeout(sessionTimer);
+    sessionTimer=setTimeout(()=>{ toast('Session expirée pour votre sécurité. Rechargez la page.','warning',8000); $('pay-button').disabled=true; }, SESSION_TIMEOUT);
+}
+['click','keydown','mousemove','touchstart'].forEach(e=>document.addEventListener(e,resetTimer,{passive:true}));
+resetTimer();
+
+/* ── INIT ────────────────────────────────────────────────────── */
+showSection('section-mobile');
+updatePayBtn();
+
+})();
+</script>
+{% endblock %}

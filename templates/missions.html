@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-6 py-12 animate-in fade-in duration-700">
+    <!-- Header -->
+    <div class="mb-10">
+        <h1 class="text-4xl font-extrabold text-white tracking-tight flex items-center gap-3">
+            <i class="fas fa-tasks text-indigo-500"></i> Gestion des Missions
+        </h1>
+        <p class="text-slate-400 mt-2 text-lg">Découvrez les missions disponibles sur le Hub et gérez vos projets en cours.</p>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert mb-6 {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %} shadow-lg rounded-2xl border border-white/10">
+                <i class="fas fa-info-circle text-lg"></i>
+                <span class="font-semibold">{{ message }}</span>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Tabs -->
+    <div class="flex gap-2 p-1.5 bg-slate-900/50 rounded-2xl border border-slate-800 w-fit mb-10">
+        <button class="btn btn-ghost hover:bg-slate-800 rounded-xl nav-tab-active px-8" onclick="switchMissionTab('disponibles')">Missions Disponibles</button>
+        <button class="btn btn-ghost hover:bg-slate-800 rounded-xl text-slate-400 px-8" onclick="switchMissionTab('mes-missions')">Mes Missions ({% if mes_missions %}{{ mes_missions.count }}{% else %}0{% endif %})</button>
+    </div>
+
+    <!-- Missions disponibles -->
+    <div id="tab-disponibles" class="mission-tab-content space-y-6 animate-in fade-in duration-500">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center text-indigo-400">
+                <i class="fas fa-bolt text-lg"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-white">Missions disponibles</h2>
+                <p class="text-slate-400 text-sm">Postulez aux offres publiées par les clients</p>
+            </div>
+        </div>
+        
+        {% if missions_disponibles %}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {% for mission in missions_disponibles %}
+                    <div class="glass-card rounded-3xl p-8 hover:border-indigo-500/40 hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] transition-all duration-300 relative overflow-hidden group">
+                        <div class="flex justify-between items-start mb-6">
+                            <span class="badge badge-lg bg-indigo-500/10 border-indigo-500/30 text-indigo-300 font-semibold gap-2 py-4">
+                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span> En attente
+                            </span>
+                            <span class="text-3xl font-extrabold text-white">{{ mission.price }} FCFA</span>
+                        </div>
+                        
+                        <h3 class="text-xl font-bold text-white mb-3 group-hover:text-indigo-400 transition-colors">{{ mission.service.title }}</h3>
+                        <p class="text-slate-400 text-sm mb-6 leading-relaxed line-clamp-3">{{ mission.instructions|default:"Aucune instruction fournie" }}</p>
+                        
+                        <div class="flex items-center justify-between text-sm text-slate-500 mb-6 pt-4 border-t border-white/5">
+                            <div class="flex items-center gap-3">
+                                <div class="avatar placeholder">
+                                    <div class="bg-gradient-to-br from-violet-500 to-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">
+                                        {{ mission.client.first_name.0|default:'C' }}
+                                    </div>
+                                </div>
+                                <span class="text-slate-300 font-medium">{{ mission.client.first_name|default:mission.client.email|truncatechars:20 }}</span>
+                            </div>
+                            <span class="text-slate-400 flex items-center gap-1.5">
+                                <i class="fas fa-calendar-alt text-xs"></i> {{ mission.created_at|date:"d/m/Y" }}
+                            </span>
+                        </div>
+                        
+                        <form method="POST" action="{% url 'missions' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="mission_id" value="{{ mission.pk }}">
+                            <input type="hidden" name="action" value="accept">
+                            <button type="submit" class="btn btn-primary w-full rounded-2xl py-4 font-bold shadow-lg shadow-indigo-500/20 group-hover:scale-[1.02] transition-all">
+                                <i class="fas fa-check-circle mr-2"></i> Accepter la mission
+                            </button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-card rounded-3xl py-16 text-center">
+                <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 mx-auto border border-white/10">
+                    <i class="fas fa-search text-3xl text-slate-500"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">Aucune mission disponible</h3>
+                <p class="text-slate-400 max-w-md mx-auto">Revenez plus tard ou attendez que des clients publient de nouvelles opportunités.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Mes missions acceptées -->
+    <div id="tab-mes-missions" class="mission-tab-content hidden space-y-6 animate-in fade-in duration-500">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-400">
+                <i class="fas fa-check text-lg"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-white">Mes missions</h2>
+                <p class="text-slate-400 text-sm">Gérez et livrez vos projets en cours de réalisation</p>
+            </div>
+        </div>
+        
+        {% if mes_missions %}
+            <div class="glass-card rounded-3xl p-8 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="table w-full text-slate-300">
+                        <thead>
+                            <tr class="text-slate-400 border-b border-white/10">
+                                <th>Service / Projet</th>
+                                <th>Client</th>
+                                <th>Budget</th>
+                                <th>Statut</th>
+                                <th>Date</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mission in mes_missions %}
+                                <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                    <td>
+                                        <div class="font-bold text-white text-base">{{ mission.service.title }}</div>
+                                        <div class="text-xs text-slate-500 mt-1 line-clamp-1 max-w-xs">{{ mission.instructions|default:"Aucune instruction" }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div class="avatar placeholder">
+                                                <div class="bg-gradient-to-br from-violet-500 to-purple-600 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold text-xs">
+                                                    {{ mission.client.first_name.0|default:'C' }}
+                                                </div>
+                                            </div>
+                                            <span class="text-slate-200 font-medium">{{ mission.client.first_name|default:mission.client.email|truncatechars:15 }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="font-extrabold text-white text-lg">{{ mission.price }} FCFA</td>
+                                    <td>
+                                        {% if mission.status == 'accepted' %}
+                                            <span class="badge badge-md text-cyan-400 bg-cyan-500/10 border-cyan-500/20 font-semibold px-3 py-3">Acceptée</span>
+                                        {% elif mission.status == 'in_progress' %}
+                                            <span class="badge badge-md text-yellow-400 bg-yellow-500/10 border-yellow-500/20 font-semibold px-3 py-3">En cours</span>
+                                        {% elif mission.status == 'delivered' %}
+                                            <span class="badge badge-md text-purple-400 bg-purple-500/10 border-purple-500/20 font-semibold px-3 py-3">Livrée</span>
+                                        {% elif mission.status == 'completed' %}
+                                            <span class="badge badge-md text-emerald-400 bg-emerald-500/10 border-emerald-500/20 font-semibold px-3 py-3">Terminée</span>
+                                        {% else %}
+                                            <span class="badge badge-md text-slate-400 bg-slate-500/10 border-slate-500/20 font-semibold px-3 py-3">{{ mission.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ mission.created_at|date:"d/m/Y" }}</td>
+                                    <td class="text-right">
+                                        {% if mission.status == 'accepted' %}
+                                            <form method="POST" action="{% url 'missions' %}" class="inline-block">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="mission_id" value="{{ mission.pk }}">
+                                                <input type="hidden" name="action" value="start">
+                                                <button type="submit" class="btn btn-sm btn-warning rounded-xl px-4 font-bold shadow-lg shadow-yellow-500/10">
+                                                    <i class="fas fa-play mr-1.5 text-xs"></i> Démarrer
+                                                </button>
+                                            </form>
+                                        {% elif mission.status == 'in_progress' %}
+                                            <form method="POST" action="{% url 'missions' %}" class="inline-block">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="mission_id" value="{{ mission.pk }}">
+                                                <input type="hidden" name="action" value="deliver">
+                                                <button type="submit" class="btn btn-sm btn-success rounded-xl px-4 font-bold shadow-lg shadow-emerald-500/10 text-white">
+                                                    <i class="fas fa-paper-plane mr-1.5 text-xs"></i> Livrer
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider"><i class="fas fa-check-double mr-1 text-slate-600"></i> Aucun besoin</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <div class="glass-card rounded-3xl py-16 text-center">
+                <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 mx-auto border border-white/10">
+                    <i class="fas fa-briefcase text-3xl text-slate-500"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">Aucune mission en cours</h3>
+                <p class="text-slate-400 max-w-md mx-auto mb-6">Acceptez une mission disponible dans l'autre onglet pour commencer à générer des revenus.</p>
+                <button class="btn btn-primary rounded-xl px-8" onclick="switchMissionTab('disponibles')">
+                    <i class="fas fa-search mr-2"></i> Parcourir les missions
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function switchMissionTab(tabId) {
+        // Hide all tab contents
+        document.querySelectorAll('.mission-tab-content').forEach(function(content) {
+            content.classList.add('hidden');
+        });
+        
+        // Show active tab content
+        document.getElementById('tab-' + tabId).classList.remove('hidden');
+        
+        // Remove active class from all tab buttons
+        event.currentTarget.parentElement.querySelectorAll('button').forEach(function(btn) {
+            btn.classList.remove('nav-tab-active');
+            btn.classList.add('text-slate-400');
+        });
+        
+        // Add active class to clicked button
+        event.currentTarget.classList.add('nav-tab-active');
+        event.currentTarget.classList.remove('text-slate-400');
+    }
+</script>
+{% endblock %}

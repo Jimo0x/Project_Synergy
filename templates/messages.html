@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .messages-viewport {
+        position: relative;
+        min-height: 100vh;
+        background-color: #030305;
+        overflow-x: hidden;
+        font-family: 'Space Grotesk', sans-serif;
+        color: #E8E8F0;
+        padding: 2rem;
+    }
+
+    .nebula-bg {
+        position: absolute;
+        inset: 0;
+        background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=1924&q=80');
+        background-size: cover;
+        background-position: center;
+        filter: blur(80px) brightness(0.15);
+        transform: scale(1.1);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .container {
+        position: relative;
+        z-index: 10;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border-radius: 2rem;
+        padding: 1.5rem;
+    }
+
+    .interlocuteur-link {
+        display: block;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.01);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 1.25rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        margin-bottom: 0.75rem;
+    }
+
+    .interlocuteur-link:hover, .interlocuteur-link.active {
+        background: rgba(99, 102, 241, 0.05);
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .chat-bubble-received {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 1.25rem;
+        padding: 1rem;
+        max-width: 75%;
+        align-self: flex-start;
+    }
+
+    .chat-bubble-sent {
+        background: rgba(99, 102, 241, 0.15);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 1.25rem;
+        padding: 1rem;
+        max-width: 75%;
+        align-self: flex-end;
+    }
+
+    .conversation-box {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        height: 400px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+
+    .input-premium {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 1.25rem !important;
+        color: white !important;
+        outline: none !important;
+        padding: 1rem 1.5rem !important;
+        width: 100%;
+        transition: border-color 0.2s;
+    }
+
+    .input-premium:focus {
+        border-color: rgba(99, 102, 241, 0.5) !important;
+    }
+</style>
+
+<div class="messages-viewport">
+    <div class="nebula-bg"></div>
+
+    <div class="container">
+        <!-- En-tête -->
+        <div class="mb-8" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h1 class="text-4xl font-extrabold text-white tracking-tight flex items-center gap-3">
+                    <i class="fas fa-comments text-indigo-500"></i> Messagerie Synergy Craft
+                </h1>
+                <p class="text-slate-400 mt-2 text-lg">Discutez en temps réel avec vos clients et collaborateurs.</p>
+            </div>
+            {% if user.role == 'client' %}
+                <a href="{% url 'home_client' %}" class="interlocuteur-link active" style="margin: 0; padding: 0.5rem 1rem;">Tableau de bord</a>
+            {% else %}
+                <a href="{% url 'home_freelancer' %}" class="interlocuteur-link active" style="margin: 0; padding: 0.5rem 1rem;">Tableau de bord</a>
+            {% endif %}
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Discussions actives -->
+            <div class="lg:col-span-1">
+                <div class="glass-card h-full flex flex-col" style="min-height: 550px;">
+                    <div style="padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 1rem;">
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fas fa-inbox text-indigo-400"></i> Discussions
+                        </h2>
+                    </div>
+
+                    <div style="flex: 1; overflow-y: auto;">
+                        <!-- Si on démarre une nouvelle conversation avec un utilisateur sans message encore existant -->
+                        {% if start_with_user %}
+                            <a href="?with={{ start_with_user.pk }}" class="interlocuteur-link active">
+                                <div style="display:flex; align-items:center; gap:0.75rem;">
+                                    <div style="width: 40px; height: 40px; border-radius:50%; background: linear-gradient(135deg, #7c3aed, #818cf8); display:flex; align-items:center; justify-content:center; font-weight:700; color:white;">
+                                        {{ start_with_user.first_name|first|upper|default:"?" }}{{ start_with_user.last_name|first|upper }}
+                                    </div>
+                                    <div style="flex:1; min-width:0;">
+                                        <h3 style="font-size:0.9rem; font-weight:700; color:white; margin:0;">{{ start_with_user.first_name|default:start_with_user.email }}</h3>
+                                        <p style="font-size:0.75rem; color:#818cf8; margin:0; font-weight:600;">Nouvelle discussion</p>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endif %}
+
+                        {% if interlocuteurs or start_with_user %}
+                            {% for u in interlocuteurs %}
+                                <a href="?with={{ u.pk }}" class="interlocuteur-link {% if active_user.pk == u.pk %}active{% endif %}">
+                                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                                        <div style="width: 40px; height: 40px; border-radius:50%; background: linear-gradient(135deg, #7c3aed, #818cf8); display:flex; align-items:center; justify-content:center; font-weight:700; color:white;">
+                                            {{ u.first_name|first|upper|default:"?" }}{{ u.last_name|first|upper }}
+                                        </div>
+                                        <div style="flex:1; min-width:0;">
+                                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                                <h3 style="font-size:0.9rem; font-weight:700; color:white; margin:0;" class="truncate">{{ u.first_name|default:u.email }}</h3>
+                                                <!-- Unread badges count -->
+                                                {% for key, val in unread_count_map.items %}
+                                                    {% if key == u.pk and val > 0 %}
+                                                        <span style="background:#f43f5e; color:white; font-size:0.7rem; font-weight:700; padding:0.1rem 0.4rem; border-radius:100px;">{{ val }}</span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <span style="font-size:0.75rem; color:rgba(255,255,255,0.4);">
+                                                {% if u.role == 'client' %}Client{% else %}Freelancer{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <div style="padding: 2rem; text-align:center; color:rgba(255,255,255,0.2);">
+                                <i class="fas fa-comment-slash" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                <p style="font-size:0.8rem;">Aucune discussion active.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone de conversation -->
+            <div class="lg:col-span-2">
+                <div class="glass-card h-full flex flex-col" style="min-height: 550px;">
+                    {% if active_user or start_with_user %}
+                        {% with current_user=active_user|default:start_with_user %}
+                            <!-- En-tête -->
+                            <div style="display:flex; align-items:center; gap:1rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 1.5rem;">
+                                <div style="width: 48px; height: 48px; border-radius:50%; background: linear-gradient(135deg, #7c3aed, #818cf8); display:flex; align-items:center; justify-content:center; font-weight:700; color:white; font-size:1.1rem;">
+                                    {{ current_user.first_name|first|upper|default:"?" }}{{ current_user.last_name|first|upper }}
+                                </div>
+                                <div>
+                                    <h2 style="font-size:1.1rem; font-weight:700; color:white; margin:0;">{{ current_user.first_name|default:current_user.email }}</h2>
+                                    <span style="font-size:0.75rem; color:#818cf8; font-weight:600; text-transform:uppercase;">
+                                        {% if current_user.role == 'client' %}Client{% else %}Freelancer{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Messages box -->
+                            <div class="conversation-box" id="conversationBox" style="flex:1;">
+                                {% if conversation %}
+                                    {% for msg in conversation %}
+                                        {% if msg.sender == user %}
+                                            <div class="chat-bubble-sent">
+                                                <p style="font-size:0.88rem; margin:0; line-height:1.4;">{{ msg.body }}</p>
+                                                <span style="font-size:0.65rem; color:rgba(255,255,255,0.4); display:block; text-align:right; margin-top:0.25rem;">{{ msg.created_at|date:"H:i" }}</span>
+                                            </div>
+                                        {% else %}
+                                            <div class="chat-bubble-received">
+                                                <p style="font-size:0.88rem; margin:0; line-height:1.4;">{{ msg.body }}</p>
+                                                <span style="font-size:0.65rem; color:rgba(255,255,255,0.4); display:block; text-align:right; margin-top:0.25rem;">{{ msg.created_at|date:"H:i" }}</span>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <div style="flex:1; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.2);">
+                                        <p>Envoyez le premier message pour lancer la conversation !</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Zone de saisie -->
+                            <form action="" method="post" style="margin-top: 1.5rem; display:flex; gap:0.75rem;">
+                                {% csrf_token %}
+                                <input type="hidden" name="receiver_id" value="{{ current_user.pk }}">
+                                <input type="text" name="body" placeholder="Écrivez votre message..." class="input-premium" required autocomplete="off">
+                                <button type="submit" style="background:linear-gradient(135deg, #7c3aed, #818cf8); color:white; border:none; border-radius:1.25rem; width: 50px; height: 50px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1.1rem; box-shadow:0 8px 20px rgba(124, 58, 237, 0.3);">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </form>
+                        {% endwith %}
+                    {% else %}
+                        <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:rgba(255,255,255,0.2); text-align:center;">
+                            <i class="far fa-comments" style="font-size: 4rem; margin-bottom: 1rem; color:rgba(255,255,255,0.05);"></i>
+                            <h3 class="premium-title text-white" style="font-size: 1.25rem; margin-bottom:0.25rem;">Aucune conversation sélectionnée</h3>
+                            <p style="font-size:0.85rem; max-width: 300px;">Sélectionnez une discussion à gauche pour commencer à envoyer des messages.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Scroll to bottom of conversation box on load
+    document.addEventListener('DOMContentLoaded', () => {
+        const box = document.getElementById('conversationBox');
+        if (box) {
+            box.scrollTop = box.scrollHeight;
+        }
+    });
+</script>
+{% endblock %}

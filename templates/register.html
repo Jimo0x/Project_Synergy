@@ -1,0 +1,648 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inscription - SynergyCraft{% endblock %}
+
+{% block content %}
+
+<div id="page-loader" class="fixed inset-0 bg-white dark:bg-[#050508] flex items-center justify-center z-[9999]" style="transition: opacity 0.5s ease-out, visibility 0.5s ease-out;">
+    <div class="flex flex-col items-center gap-4">
+        <div class="relative w-20 h-20">
+            <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-primary border-r-primary animate-spin"></div>
+            <div class="absolute inset-2 rounded-full border-4 border-transparent border-b-primary border-l-primary" style="animation: spin 3s linear infinite reverse;"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <i class="fas fa-user-plus text-primary text-2xl animate-pulse"></i>
+            </div>
+        </div>
+        <div class="text-center">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">SynergyCraft</h3>
+            <div class="w-48 h-1 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+                <div id="loader-bar" class="h-full bg-primary transition-all duration-500" style="width:0%;background:var(--gradient);"></div>
+            </div>
+            <p id="loader-text" class="text-sm text-gray-500 dark:text-gray-400 mt-2">Chargement...</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    
+    /* ── COHÉRENCE AVEC LE LOGIN (FOND FLOU & HALOS) ── */
+    .reg-page {
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+        background-color: #050508;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1rem;
+        perspective: 1500px; /* Profondeur 3D */
+    }
+
+    .bg-blur-image {
+        position: absolute;
+        inset: 0;
+        background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=1964&q=80');
+        background-size: cover;
+        background-position: center;
+        filter: blur(40px) brightness(0.25);
+        transform: scale(1.1);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .bg-glow {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(120px);
+        opacity: 0.12;
+        pointer-events: none;
+        z-index: 1;
+    }
+    .glow-1 { background: var(--primary); width: 500px; height: 500px; top: -10%; left: -10%; }
+    .glow-2 { background: var(--secondary); width: 400px; height: 400px; bottom: -10%; right: -10%; }
+
+    /* ── STRUCTURE ORIGINALE ── */
+    .reg-wrap {
+        width: 100%;
+        max-width: 1080px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        align-items: stretch;
+        position: relative;
+        z-index: 10;
+        }
+
+    @media (min-width: 1024px) {
+        .reg-wrap { grid-template-columns: 42fr 58fr; }
+    }
+
+    /* ── PANNEAU GAUCHE ADAPTÉ ── */
+    .reg-left {
+        /* Remplacement du gradient opaque par un glassmorphism cohérent avec le Login */
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+        border-radius: 1.5rem;
+        padding: 3.5rem 2.5rem;
+        display: none;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        color: white;
+        transform-style: preserve-3d;
+        opacity: 0; /* Géré par GSAP */
+        will-change: transform, opacity;
+    }
+
+    @media (min-width: 1024px) { .reg-left { display: flex; } }
+
+    .reg-left-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 2.5rem;
+        position: relative;
+        z-index: 1;
+        transform: translateZ(30px);
+    }
+
+    .reg-left-logo-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 0.875rem;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    /* ── EFFETS TYPEWRITER & LOOP ── */
+    .cursor-effect::after {
+        content: '|';
+        animation: blink 0.8s infinite;
+        color: var(--secondary);
+        margin-left: 2px;
+    }
+    @keyframes blink { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+    .dynamic-messages-box {
+        position: relative;
+        flex-grow: 1;
+        margin-top: 2rem;
+        min-height: 120px; /* IMPORTANT: Réserve l'espace pour éviter que le texte du bas ne bouge */
+        transform: translateZ(40px);
+    }
+
+    .loop-message {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        opacity: 0;
+        visibility: hidden; /* On utilise visibility plutôt que display: none */
+        display: flex; /* On laisse le flex actif, visibility s'occupe de le cacher */
+        flex-direction: column;
+        gap: 0.875rem;
+    }
+    /* ── PANNEAU DROIT (FORMULAIRE INTACT, ANIMATION CSS DÉSACTIVÉE) ── */
+    .reg-card {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 2.5rem;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.07);
+        border: 1px solid rgba(139,92,246,0.08);
+        /* opacity et transform gérés par GSAP avec fallback CSS */
+        opacity: 0;
+        animation: cardFadeIn 0.6s ease 2.2s forwards;
+        position: relative;
+        z-index: 1;
+    }
+    @keyframes cardFadeIn { to { opacity: 1; } }
+
+    [data-theme="dark"] .reg-card {
+        background: rgba(255, 255, 255, 0.01);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-color: rgba(255,255,255,0.06);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+
+    @media (min-width: 640px) { .reg-card { padding: 3rem 3.5rem; } }
+
+    /* ── SHAKE SUR ERREUR ── */
+    @keyframes physicalCardShake {
+        0%, 100% { transform: translate3d(0, 0, 0); }
+        10%, 30%, 50%, 70%, 90% { transform: translate3d(-10px, 0, 0) rotateY(-1.5deg); }
+        20%, 40%, 60%, 80% { transform: translate3d(10px, 0, 0) rotateY(1.5deg); }
+    }
+
+    .shake-error-active {
+        animation: physicalCardShake 0.5s cubic-bezier(.36,.07,.19,.97) both !important;
+        border-color: rgba(239, 68, 68, 0.4) !important;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(239, 68, 68, 0.15) !important;
+    }
+
+    /* Le reste de tes styles originaux pour le formulaire... */
+    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 2rem; }
+    .role-btn { position: relative; padding: 1.25rem 0.75rem 1rem; border-radius: 0.875rem; border: 1.5px solid #E5E7EB; background: #F9FAFB; cursor: pointer; transition: all 0.22s ease; display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-align: center; }
+    [data-theme="dark"] .role-btn { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); }
+    .role-btn:hover { border-color: var(--primary); background: rgba(139,92,246,0.04); }
+    .role-btn.role-active-client { border-color: var(--primary); background: rgba(139,92,246,0.06); box-shadow: 0 0 0 3px rgba(139,92,246,0.1); }
+    .role-btn.role-active-freelancer { border-color: var(--secondary); background: rgba(6,182,212,0.05); box-shadow: 0 0 0 3px rgba(6,182,212,0.1); }
+    .role-btn-icon { width: 40px; height: 40px; border-radius: 0.625rem; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: #F3F4F6; color: #9CA3AF; transition: all 0.2s; margin-bottom: 0.25rem; }
+    [data-theme="dark"] .role-btn-icon { background: rgba(255,255,255,0.08); }
+    .role-active-client .role-btn-icon { background: rgba(139,92,246,0.12); color: var(--primary); }
+    .role-active-freelancer .role-btn-icon { background: rgba(6,182,212,0.1); color: var(--secondary); }
+    .role-btn-title { font-size: 0.82rem; font-weight: 700; color: #374151; line-height: 1; }
+    [data-theme="dark"] .role-btn-title { color: #E2E8F0; }
+    .role-active-client .role-btn-title { color: var(--primary); }
+    .role-active-freelancer .role-btn-title { color: var(--secondary); }
+    .role-btn-sub { font-size: 0.68rem; color: #9CA3AF; line-height: 1.3; }
+    .role-check-badge { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); color: white; font-size: 0.55rem; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0.5); transition: all 0.2s ease; border: 2px solid white; }
+    [data-theme="dark"] .role-check-badge { border-color: #1e293b; }
+    .role-active-client .role-check-badge { opacity: 1; transform: scale(1); }
+    .role-active-freelancer .role-check-badge { opacity: 1; transform: scale(1); background: var(--secondary); }
+    .field-group { margin-bottom: 1.1rem; }
+    .field-label { display: block; font-size: 0.8rem; font-weight: 600; color: #374151; margin-bottom: 0.35rem; margin-left: 0.125rem; }
+    [data-theme="dark"] .field-label { color: #CBD5E1; }
+    .field-input-wrap { position: relative; }
+    .field-input-wrap i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #9CA3AF; font-size: 0.85rem; transition: color 0.2s; pointer-events: none; }
+    .field-input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.75rem; background: #F9FAFB; border: 1.5px solid #E5E7EB; border-radius: 0.75rem; font-size: 0.875rem; color: #111827; outline: none; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+    [data-theme="dark"] .field-input { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); color: #E2E8F0; }
+    .field-input:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(139,92,246,0.1); }
+    [data-theme="dark"] .field-input:focus { background: rgba(255,255,255,0.06); }
+    .field-input::placeholder { color: #C4C4CC; }
+    [data-theme="dark"] .field-input::placeholder { color: rgba(255,255,255,0.3); }
+    .field-input-wrap:focus-within i { color: var(--primary); }
+    .toggle-pw { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #9CA3AF; cursor: pointer; padding: 0; font-size: 0.85rem; transition: color 0.2s; pointer-events: all; }
+    .toggle-pw:hover { color: #6B7280; }
+    .reg-submit { width: 100%; padding: 0.875rem; border: none; border-radius: 0.75rem; background: var(--gradient); color: white; font-size: 0.9rem; font-weight: 700; font-family: 'Space Grotesk', sans-serif; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 4px 16px rgba(139,92,246,0.3); display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 0.5rem; }
+    .reg-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(139,92,246,0.4); }
+    .reg-submit:active { transform: translateY(0); }
+    .social-divider { display: flex; align-items: center; gap: 0.75rem; margin: 1.5rem 0 1rem; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9CA3AF; }
+    .social-divider::before, .social-divider::after { content: ''; flex: 1; height: 1px; background: #E5E7EB; }
+    [data-theme="dark"] .social-divider::before, [data-theme="dark"] .social-divider::after { background: rgba(255,255,255,0.08); }
+    .social-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+    .social-btn { display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.625rem 0.5rem; border-radius: 0.625rem; border: 1.5px solid #E5E7EB; background: white; color: #374151; font-size: 0.78rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+    [data-theme="dark"] .social-btn { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.1); color: #CBD5E1; }
+    .social-btn:hover { transform: translateY(-1px); }
+    .social-btn-google:hover { border-color: #EA4335; color: #EA4335; background: rgba(234,67,53,0.04); }
+    .social-btn-linkedin:hover { border-color: #0A66C2; color: #0A66C2; background: rgba(10,102,194,0.04); }
+    .social-btn-twitter:hover { border-color: #1DA1F2; color: #1DA1F2; background: rgba(29,161,242,0.04); }
+    .social-btn i { font-size: 0.95rem; }
+    .pw-strength { display: flex; gap: 3px; margin-top: 0.4rem; }
+    .pw-bar { flex: 1; height: 3px; border-radius: 2px; background: #E5E7EB; transition: background 0.3s; }
+    [data-theme="dark"] .pw-bar { background: rgba(255,255,255,0.1); }
+    .pw-bar.weak { background: #EF4444; }
+    .pw-bar.medium { background: #F59E0B; }
+    .pw-bar.strong { background: #10B981; }
+    .reg-error { background: #FEF2F2; border: 1px solid #FECACA; border-radius: 0.75rem; padding: 0.875rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.82rem; color: #B91C1C; }
+    [data-theme="dark"] .reg-error { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #FCA5A5; }
+</style>
+
+<div class="reg-page">
+    <div class="bg-blur-image"></div>
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+
+    <div class="reg-wrap">
+
+        <aside class="reg-left" id="left-info-panel">
+            <div>
+                <div class="reg-left-logo">
+                    <div class="reg-left-logo-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div>
+                        <div style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;">Synergy<span style="color:var(--primary)">Craft</span></div>
+                        <div style="font-size:0.65rem;opacity:0.65;letter-spacing:0.1em;text-transform:uppercase;">Marketplace Freelance</div>
+                    </div>
+                </div>
+
+                <div class="transform translate-z-[40px]">
+                    <h2 id="typewriter-title" style="font-family:'Space Grotesk',sans-serif;font-size:2rem;font-weight:700;line-height:1.2;margin-bottom:1rem;min-height:75px;"></h2>
+                    <p id="typewriter-sub" style="font-size:0.9rem;color:rgba(255,255,255,0.6);line-height:1.65;min-height:50px;"></p>
+                </div>
+
+                <div class="dynamic-messages-box">
+                    <div class="loop-message">
+                        <div style="display:flex;align-items:center;gap:0.75rem;color:var(--primary);font-weight:700;font-size:0.9rem;">
+                            <div style="width:28px;height:28px;border-radius:50%;background:rgba(139,92,246,0.15);display:flex;align-items:center;justify-content:center;"><i class="fas fa-bolt text-sm"></i></div>
+                            Inscription rapide
+                        </div>
+                        <p style="font-size:0.85rem;color:rgba(255,255,255,0.7);padding-left:2.5rem;margin:0;">Créez votre profil en moins de 2 minutes sans aucun engagement financier.</p>
+                    </div>
+
+                    <div class="loop-message">
+                        <div style="display:flex;align-items:center;gap:0.75rem;color:var(--secondary);font-weight:700;font-size:0.9rem;">
+                            <div style="width:28px;height:28px;border-radius:50%;background:rgba(6,182,212,0.15);display:flex;align-items:center;justify-content:center;"><i class="fas fa-shield-alt text-sm"></i></div>
+                            Paiement Sécurisé
+                        </div>
+                        <p style="font-size:0.85rem;color:rgba(255,255,255,0.7);padding-left:2.5rem;margin:0;">Système d'escrow intégré avec MTN MoMo, Orange Money & Stripe.</p>
+                    </div>
+
+                    <div class="loop-message">
+                        <div style="display:flex;align-items:center;gap:0.75rem;color:#F59E0B;font-weight:700;font-size:0.9rem;">
+                            <div style="width:28px;height:28px;border-radius:50%;background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center;"><i class="fas fa-star text-sm"></i></div>
+                            Talents Vérifiés
+                        </div>
+                        <p style="font-size:0.85rem;color:rgba(255,255,255,0.7);padding-left:2.5rem;margin:0;">Accédez à une communauté d'experts validés et notés par leurs clients.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reg-left-bottom transform translate-z-[20px]">
+                <p>
+                    <i class="fas fa-quote-left" style="opacity:0.4;margin-right:0.3rem;font-size:0.9rem;"></i>
+                    <strong>SynergyCraft</strong> m'a permis de trouver un développeur sérieux en 48h. Le système d'escrow m'a rassuré dès le départ.
+                </p>
+                <div style="margin-top:0.875rem;display:flex;align-items:center;gap:0.625rem;">
+                    <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">AK</div>
+                    <div>
+                        <div style="font-size:0.78rem;font-weight:700;">Ayao Kpossou</div>
+                        <div style="font-size:0.68rem;opacity:0.6;">CEO, StartupBénin</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <section class="reg-card {% if error %}has-django-errors{% endif %}" id="register-auth-card">
+
+            <div style="margin-bottom:1.75rem;">
+                <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.75rem;font-weight:700;color:inherit;margin-bottom:0.375rem;">
+                    Créer un compte
+                </h2>
+                <p style="font-size:0.875rem;color:#6B7280;">
+                    Rejoignez SynergyCraft gratuitement dès aujourd'hui.
+                </p>
+            </div>
+
+            {% if error %}
+            <div class="reg-error">
+                <i class="fas fa-exclamation-circle" style="margin-top:0.1rem;flex-shrink:0;"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <div style="margin-bottom:1.5rem;">
+                <p style="font-size:0.78rem;font-weight:700;margin-bottom:0.625rem;letter-spacing:0.03em;">
+                    Je m'inscris en tant que
+                </p>
+                <div class="role-grid">
+                    <button type="button" class="role-btn role-active-client" id="role-client" onclick="selectRole('client')">
+                        <div class="role-check-badge"><i class="fas fa-check"></i></div>
+                        <div class="role-btn-icon"><i class="fas fa-shopping-bag"></i></div>
+                        <span class="role-btn-title">Client</span>
+                        <span class="role-btn-sub">Je cherche un expert pour mon projet</span>
+                    </button>
+                    <button type="button" class="role-btn" id="role-freelancer" onclick="selectRole('freelancer')">
+                        <div class="role-check-badge"><i class="fas fa-check"></i></div>
+                        <div class="role-btn-icon"><i class="fas fa-laptop-code"></i></div>
+                        <span class="role-btn-title">Freelancer</span>
+                        <span class="role-btn-sub">Je propose mes services digitaux</span>
+                    </button>
+                </div>
+            </div>
+
+            <form method="POST" action="{% url 'register' %}" id="registerForm">
+                {% csrf_token %}
+                <input type="hidden" name="role" id="selected-role" value="client">
+
+                <div class="grid grid-cols-2 gap-3" style="margin-bottom:1.1rem;">
+                    <div class="field-group" style="margin-bottom:0;">
+                        <label class="field-label">Prénom</label>
+                        <div class="field-input-wrap">
+                            <i class="fas fa-user"></i>
+                            <input type="text" name="first_name" class="field-input" placeholder="Jean" required>
+                        </div>
+                    </div>
+                    <div class="field-group" style="margin-bottom:0;">
+                        <label class="field-label">Nom</label>
+                        <div class="field-input-wrap">
+                            <i class="fas fa-user"></i>
+                            <input type="text" name="last_name" class="field-input" placeholder="Dupont">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Adresse e-mail</label>
+                    <div class="field-input-wrap">
+                        <i class="far fa-envelope"></i>
+                        <input type="email" name="email" class="field-input" placeholder="jean@exemple.com" required>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Mot de passe</label>
+                    <div class="field-input-wrap">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" id="id_password" class="field-input" placeholder="Minimum 8 caractères" required style="padding-right:2.75rem;">
+                        <button type="button" class="toggle-pw" id="togglePw1">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="pw-strength" id="pwStrength">
+                        <div class="pw-bar" id="pwBar1"></div>
+                        <div class="pw-bar" id="pwBar2"></div>
+                        <div class="pw-bar" id="pwBar3"></div>
+                        <div class="pw-bar" id="pwBar4"></div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Confirmer le mot de passe</label>
+                    <div class="field-input-wrap">
+                        <i class="fas fa-shield-alt"></i>
+                        <input type="password" name="password_confirm" id="id_password_confirm" class="field-input" placeholder="Répétez votre mot de passe" required style="padding-right:2.75rem;">
+                        <button type="button" class="toggle-pw" id="togglePw2">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display:flex;align-items:flex-start;gap:0.625rem;margin-bottom:1.25rem;position:relative;z-index:5;">
+                    <input type="checkbox" id="cgu" name="cgu" required
+                        style="width:16px;height:16px;margin-top:0.15rem;accent-color:var(--primary);flex-shrink:0;cursor:pointer;position:relative;z-index:5;">
+                    <label for="cgu" style="font-size:0.78rem;color:#6B7280;cursor:pointer;line-height:1.5;">
+                        J'accepte les <a href="#" style="color:var(--primary);font-weight:600;">Conditions d'utilisation</a>
+                        et la <a href="#" style="color:var(--primary);font-weight:600;">Politique de confidentialité</a> de SynergyCraft.
+                    </label>
+                </div>
+
+                <button type="submit" class="reg-submit" id="submit-btn" style="position:relative;z-index:5;">
+                    <i class="fas fa-user-plus"></i>
+                    Créer mon compte Client
+                </button>
+            </form>
+
+            <div class="social-divider">ou s'inscrire avec</div>
+            <div class="social-row">
+                <a href="#" class="social-btn social-btn-google">
+                    <i class="fab fa-google"></i> Google
+                </a>
+                <a href="#" class="social-btn social-btn-linkedin">
+                    <i class="fab fa-linkedin-in"></i> LinkedIn
+                </a>
+                <a href="#" class="social-btn social-btn-twitter">
+                    <i class="fab fa-twitter"></i> Twitter
+                </a>
+            </div>
+
+            <p style="text-align:center;margin-top:1.5rem;font-size:0.82rem;color:#9CA3AF;">
+                Déjà inscrit ?
+                <a href="{% url 'login' %}" style="color:var(--primary);font-weight:700;text-decoration:none;">Se connecter</a>
+            </p>
+
+        </section>
+
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script>
+(function() {
+
+    // ── PAGE LOADER ET ANIMATION GSAP D'ENTRÉE ──────────────────────────────
+    window.addEventListener('load', function() {
+        const loader = document.getElementById('page-loader');
+        const bar = document.getElementById('loader-bar');
+        const text = document.getElementById('loader-text');
+        
+        const leftPanel = document.getElementById('left-info-panel');
+        const rightCard = document.getElementById('register-auth-card');
+
+        let progress = 0;
+        const steps = ['Préparation...', 'Chargement...', 'Presque prêt...', 'Bienvenue !'];
+
+        const interval = setInterval(() => {
+            progress += Math.random() * 35;
+            if (progress > 100) progress = 100;
+            if (bar) bar.style.width = progress + '%';
+            if (text) text.textContent = steps[Math.floor(progress / 25)] || steps[3];
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    loader.style.opacity = '0';
+                    loader.style.visibility = 'hidden';
+                    
+                    // Lancement des animations 3D
+                    if (window.innerWidth >= 1024) {
+                        const tl = gsap.timeline();
+                        tl.fromTo(leftPanel,
+                            { opacity: 0, scale: 0.9, rotateY: -25, z: -150, transformOrigin: "left center" },
+                            { opacity: 1, scale: 1, rotateY: 0, z: 0, duration: 1.2, ease: "power3.out" }
+                        )
+                        .fromTo(rightCard,
+                            { opacity: 0, y: 20 },
+                            { opacity: 1, y: 0, duration: 0.9, ease: "power3.out", clearProps: "transform" },
+                            "-=1.0"
+                        );
+                        
+                        setTimeout(startTypewriter, 800);
+                    } else {
+                        gsap.fromTo(rightCard, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, clearProps: 'transform' });
+                    }
+
+                    // VIBRATION SUR ERREUR DJANGO
+                    if (rightCard.classList.contains('has-django-errors')) {
+                        setTimeout(() => {
+                            rightCard.classList.add('shake-error-active');
+                            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                        }, 1200);
+                    }
+                }, 300);
+            }
+        }, 50);
+    });
+
+    // ── ANIMATION TYPEWRITER ─────────────────────────────────────────────────
+    function runTypewriter(targetId, completeText, callback) {
+        const target = document.getElementById(targetId);
+        if(!target) return;
+        target.classList.add('cursor-effect');
+        let index = 0;
+        
+        const timer = setInterval(() => {
+            target.textContent += completeText[index];
+            index++;
+            if (index >= completeText.length) {
+                clearInterval(timer);
+                target.classList.remove('cursor-effect');
+                if (callback) callback();
+            }
+        }, 35);
+    }
+
+    function startTypewriter() {
+        runTypewriter("typewriter-title", "Connectez talent et ambition", () => {
+            runTypewriter("typewriter-sub", "Rejoignez des centaines d'entrepreneurs et de freelancers qui font confiance à SynergyCraft en Afrique de l'Ouest.", () => {
+                triggerNextLoopMessage();
+            });
+        });
+    }
+
+// ── BOUCLE DE MESSAGES ───────────────────────────────────────────────────
+    const loopMessages = document.querySelectorAll('.loop-message');
+    let activeMessageIndex = 0;
+
+    function triggerNextLoopMessage() {
+        if (loopMessages.length === 0 || window.innerWidth < 1024) return;
+        const currentMsg = loopMessages[activeMessageIndex];
+        
+        // autoAlpha est la solution magique de GSAP pour (opacity + visibility)
+        gsap.fromTo(currentMsg,
+            { autoAlpha: 0, y: 15, z: 20 },
+            { 
+                autoAlpha: 1, y: 0, z: 40, duration: 0.6, ease: "power2.out",
+                onComplete: () => {
+                    setTimeout(() => {
+                        gsap.to(currentMsg, {
+                            autoAlpha: 0, y: -15, duration: 0.4, ease: "power2.in",
+                            onComplete: () => {
+                                activeMessageIndex = (activeMessageIndex + 1) % loopMessages.length;
+                                triggerNextLoopMessage();
+                            }
+                        });
+                    }, 4000); // Temps de lecture (4 secondes)
+                }
+            }
+        );
+    } 
+
+    // ── EFFET PARALLAXE MOUSEMOVE ────────────────────────────────────────────
+    const leftPanel = document.getElementById('left-info-panel');
+    const rightCard = document.getElementById('register-auth-card');
+
+    // Parallax uniquement sur le panneau gauche (pas sur le formulaire)
+    document.addEventListener('mousemove', (e) => {
+        if (window.innerWidth < 1024 || !leftPanel) return;
+        if (!leftPanel || window.getComputedStyle(leftPanel).opacity < 0.5) return;
+
+        const x = (window.innerWidth / 2 - e.clientX) / 50;
+        const y = (window.innerHeight / 2 - e.clientY) / 50;
+
+        gsap.to(leftPanel, { duration: 0.6, rotateY: -x * 0.5, rotateX: y * 0.5, overwrite: "auto" });
+    });
+
+    document.addEventListener('mouseleave', () => {
+        if (window.innerWidth < 1024 || !leftPanel) return;
+        gsap.to(leftPanel, { duration: 0.8, rotateX: 0, rotateY: 0 });
+    });
+
+    // ── FONCTIONS ORIGINALES DU FORMULAIRE (INCHANGÉES) ──────────────────────
+    window.selectRole = function(role) {
+        const clientBtn = document.getElementById('role-client');
+        const freelancerBtn = document.getElementById('role-freelancer');
+        const roleInput = document.getElementById('selected-role');
+        const submitBtn = document.getElementById('submit-btn');
+
+        clientBtn.classList.remove('role-active-client', 'role-active-freelancer');
+        freelancerBtn.classList.remove('role-active-client', 'role-active-freelancer');
+
+        if (role === 'client') {
+            clientBtn.classList.add('role-active-client');
+            roleInput.value = 'client';
+            submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Créer mon compte Client';
+            submitBtn.style.background = 'linear-gradient(135deg, #8B5CF6, #06B6D4)';
+        } else {
+            freelancerBtn.classList.add('role-active-freelancer');
+            roleInput.value = 'freelancer';
+            submitBtn.innerHTML = '<i class="fas fa-laptop-code"></i> Rejoindre en tant que Freelancer';
+            submitBtn.style.background = 'linear-gradient(135deg, #06B6D4, #8B5CF6)';
+        }
+    };
+
+    const urlType = new URLSearchParams(window.location.search).get('type');
+    if (urlType === 'freelancer') selectRole('freelancer');
+
+    function setupToggle(btnId, inputId) {
+        const btn = document.getElementById(btnId);
+        const input = document.getElementById(inputId);
+        if (!btn || !input) return;
+        btn.addEventListener('click', () => {
+            const isText = input.type === 'text';
+            input.type = isText ? 'password' : 'text';
+            btn.innerHTML = isText ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+        });
+    }
+
+    setupToggle('togglePw1', 'id_password');
+    setupToggle('togglePw2', 'id_password_confirm');
+
+    const pwInput = document.getElementById('id_password');
+    const bars = [
+        document.getElementById('pwBar1'),
+        document.getElementById('pwBar2'),
+        document.getElementById('pwBar3'),
+        document.getElementById('pwBar4'),
+    ];
+
+    if (pwInput) {
+        pwInput.addEventListener('input', function() {
+            const val = this.value;
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+
+            bars.forEach((bar, i) => {
+                bar.classList.remove('weak', 'medium', 'strong');
+                if (i < score) {
+                    if (score <= 1) bar.classList.add('weak');
+                    else if (score <= 2) bar.classList.add('medium');
+                    else bar.classList.add('strong');
+                }
+            });
+        });
+    }
+
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,975 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-base-100 to-base-200">
+    <!-- Hero Section -->
+    <section class="relative py-16 md:py-20 overflow-hidden">
+        <!-- Background -->
+        <div class="absolute inset-0 z-0">
+            <div class="absolute top-10 left-5 w-64 h-64 md:w-72 md:h-72 bg-primary/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-10 right-5 w-80 h-80 md:w-96 md:h-96 bg-secondary/10 rounded-full blur-3xl"></div>
+            <div class="absolute top-1/2 left-1/4 w-56 h-56 md:w-64 md:h-64 bg-accent/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="max-w-4xl mx-auto text-center">
+                <!-- Icon & Title -->
+                <div class="mb-8 animate-fade-in-down">
+                    <div class="inline-flex items-center justify-center p-5 rounded-2xl bg-gradient-to-r from-primary/20 to-secondary/20 mb-6">
+                        <i class="fas fa-headset text-4xl md:text-5xl text-primary"></i>
+                    </div>
+                    <h1 class="text-4xl md:text-6xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                        Centre de Support
+                    </h1>
+                    <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
+                        Notre équipe est là pour vous accompagner à chaque étape de votre projet digital.
+                    </p>
+                    
+                    <!-- Search Bar -->
+                    <div class="max-w-2xl mx-auto mt-8">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input 
+                                type="text" 
+                                id="search-support"
+                                placeholder="Rechercher dans notre base de connaissances..."
+                                class="w-full pl-12 pr-24 py-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                            />
+                            <button onclick="searchSupport()" class="absolute right-2 top-1/2 transform -translate-y-1/2 btn btn-primary rounded-xl px-6">
+                                <i class="fas fa-search mr-2"></i>
+                                Rechercher
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 pb-16 md:pb-20">
+        <!-- Quick Actions -->
+        <div class="max-w-6xl mx-auto mb-12 md:mb-16">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center">Support Rapide</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                <!-- Urgent Support -->
+                <a href="https://wa.me/229XXXXXXXXX" target="_blank" class="card bg-gradient-to-br from-red-500 to-orange-500 text-white hover:scale-[1.02] transition-transform shadow-lg">
+                    <div class="card-body p-6 text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-exclamation-triangle text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Support Urgent</h3>
+                        <p class="text-sm opacity-90 mb-4">Problème critique ? Nous intervenons immédiatement</p>
+                        <div class="flex items-center justify-center text-sm">
+                            <i class="fas fa-bolt mr-2"></i>
+                            <span>Réponse sous 15min</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Technical Support -->
+                <div class="card bg-gradient-to-br from-primary to-secondary text-white hover:scale-[1.02] transition-transform shadow-lg">
+                    <div class="card-body p-6 text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-cogs text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Support Technique</h3>
+                        <p class="text-sm opacity-90 mb-4">Problèmes techniques, bugs, maintenance</p>
+                        <div class="flex items-center justify-center text-sm">
+                            <i class="fas fa-clock mr-2"></i>
+                            <span>24h/24 - 7j/7</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing Support -->
+                <div class="card bg-gradient-to-br from-purple-500 to-pink-500 text-white hover:scale-[1.02] transition-transform shadow-lg">
+                    <div class="card-body p-6 text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-file-invoice-dollar text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Support Facturation</h3>
+                        <p class="text-sm opacity-90 mb-4">Factures, paiements, devis, contrats</p>
+                        <div class="flex items-center justify-center text-sm">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <span>Réponse sous 2h</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Support -->
+                <div class="card bg-gradient-to-br from-green-500 to-emerald-500 text-white hover:scale-[1.02] transition-transform shadow-lg">
+                    <div class="card-body p-6 text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-project-diagram text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Support Projet</h3>
+                        <p class="text-sm opacity-90 mb-4">Suivi de projet, modifications, livrables</p>
+                        <div class="flex items-center justify-center text-sm">
+                            <i class="fas fa-user-tie mr-2"></i>
+                            <span>Manager dédié</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Knowledge Base -->
+        <div class="max-w-6xl mx-auto mb-16">
+            <h2 class="text-2xl md:text-3xl font-bold mb-8 text-center">Base de Connaissances</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- FAQ Section -->
+                <div class="space-y-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mr-4">
+                            <i class="fas fa-question-circle text-primary text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold">Questions Fréquentes</h3>
+                            <p class="text-gray-600 dark:text-gray-400">Trouvez rapidement des réponses</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4" id="faq-accordion">
+                        <!-- FAQ Item 1 -->
+                        <div class="collapse collapse-plus bg-base-100 border border-gray-200 dark:border-gray-700 rounded-2xl">
+                            <input type="radio" name="faq-accordion" checked="checked" />
+                            <div class="collapse-title text-lg font-semibold">
+                                Comment obtenir un devis pour mon projet ?
+                            </div>
+                            <div class="collapse-content">
+                                <p>Pour obtenir un devis personnalisé :</p>
+                                <ul class="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-400">
+                                    <li>Contactez-nous via WhatsApp, téléphone ou email</li>
+                                    <li>Décrivez votre projet en détail (objectifs, fonctionnalités, délais)</li>
+                                    <li>Notre équipe analysera vos besoins sous 24h</li>
+                                    <li>Vous recevrez un devis détaillé et transparent</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 2 -->
+                        <div class="collapse collapse-plus bg-base-100 border border-gray-200 dark:border-gray-700 rounded-2xl">
+                            <input type="radio" name="faq-accordion" />
+                            <div class="collapse-title text-lg font-semibold">
+                                Quels sont vos délais de livraison ?
+                            </div>
+                            <div class="collapse-content">
+                                <p>Nos délais varient selon la complexité du projet :</p>
+                                <ul class="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-400">
+                                    <li><strong>Site vitrine :</strong> 10-15 jours ouvrables</li>
+                                    <li><strong>E-commerce :</strong> 15-25 jours ouvrables</li>
+                                    <li><strong>Application web :</strong> 1-3 mois</li>
+                                    <li><strong>Design graphique :</strong> 3-7 jours</li>
+                                    <li>Des options express sont disponibles (+30%)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 3 -->
+                        <div class="collapse collapse-plus bg-base-100 border border-gray-200 dark:border-gray-700 rounded-2xl">
+                            <input type="radio" name="faq-accordion" />
+                            <div class="collapse-title text-lg font-semibold">
+                                Comment fonctionne le support après livraison ?
+                            </div>
+                            <div class="collapse-content">
+                                <p>Notre support post-livraison comprend :</p>
+                                <ul class="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-400">
+                                    <li><strong>30 jours de garantie :</strong> Corrections gratuites</li>
+                                    <li><strong>Support technique :</strong> 6 mois inclus (extensible)</li>
+                                    <li><strong>Formation :</strong> Session complète d'utilisation</li>
+                                    <li><strong>Maintenance :</strong> Forfaits mensuels disponibles</li>
+                                    <li><strong>Assistance 24/7 :</strong> Pour les projets critiques</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 4 -->
+                        <div class="collapse collapse-plus bg-base-100 border border-gray-200 dark:border-gray-700 rounded-2xl">
+                            <input type="radio" name="faq-accordion" />
+                            <div class="collapse-title text-lg font-semibold">
+                                Quels modes de paiement acceptez-vous ?
+                            </div>
+                            <div class="collapse-content">
+                                <p>Nous acceptons plusieurs modes de paiement :</p>
+                                <ul class="list-disc pl-5 mt-2 space-y-1 text-gray-600 dark:text-gray-400">
+                                    <li>Mobile Money (MTN, Moov)</li>
+                                    <li>Wave</li>
+                                    <li>Virements bancaires</li>
+                                    <li>Cartes Visa/Mastercard</li>
+                                    <li>PayPal pour les clients internationaux</li>
+                                </ul>
+                                <p class="mt-3">Options de paiement échelonné disponibles.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tutorials & Guides -->
+                <div class="space-y-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mr-4">
+                            <i class="fas fa-graduation-cap text-secondary text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold">Guides & Tutoriels</h3>
+                            <p class="text-gray-600 dark:text-gray-400">Apprenez à utiliser nos services</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4">
+                        <!-- Guide 1 -->
+                        <a href="#" class="card bg-base-100 border border-gray-200 dark:border-gray-700 hover:border-primary hover:shadow-lg transition-all">
+                            <div class="card-body p-5">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mr-4">
+                                        <i class="fas fa-play-circle text-primary"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="font-bold">Premiers pas avec votre nouveau site</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Guide complet d'utilisation</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-gray-400"></i>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Guide 2 -->
+                        <a href="#" class="card bg-base-100 border border-gray-200 dark:border-gray-700 hover:border-primary hover:shadow-lg transition-all">
+                            <div class="card-body p-5">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center mr-4">
+                                        <i class="fas fa-cog text-secondary"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="font-bold">Gérer votre backoffice</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Administration et paramètres</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-gray-400"></i>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Guide 3 -->
+                        <a href="#" class="card bg-base-100 border border-gray-200 dark:border-gray-700 hover:border-primary hover:shadow-lg transition-all">
+                            <div class="card-body p-5">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mr-4">
+                                        <i class="fas fa-chart-line text-accent"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="font-bold">Analyser vos performances</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Google Analytics & rapports</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-gray-400"></i>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Guide 4 -->
+                        <a href="#" class="card bg-base-100 border border-gray-200 dark:border-gray-700 hover:border-primary hover:shadow-lg transition-all">
+                            <div class="card-body p-5">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center mr-4">
+                                        <i class="fas fa-shield-alt text-purple-500"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="font-bold">Sécurité et sauvegarde</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Protégez vos données</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-gray-400"></i>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Support Stats -->
+                    <div class="card bg-gradient-to-br from-gray-900 to-gray-800 text-white mt-8">
+                        <div class="card-body p-6">
+                            <h4 class="text-lg font-bold mb-4">Nos Performances de Support</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="text-center">
+                                    <div class="text-3xl font-bold text-green-400">99.2%</div>
+                                    <p class="text-sm text-gray-300">Taux de satisfaction</p>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-3xl font-bold text-blue-400">15min</div>
+                                    <p class="text-sm text-gray-300">Temps de réponse moyen</p>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-3xl font-bold text-yellow-400">24/7</div>
+                                    <p class="text-sm text-gray-300">Disponibilité</p>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-3xl font-bold text-purple-400">98%</div>
+                                    <p class="text-sm text-gray-300">Problèmes résolus</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Channels -->
+        <div class="max-w-6xl mx-auto mb-16">
+            <h2 class="text-2xl md:text-3xl font-bold mb-8 text-center">Canaux de Contact</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- WhatsApp -->
+                <div class="card bg-gradient-to-br from-green-500 to-emerald-600 text-white hover:scale-[1.02] transition-transform">
+                    <div class="card-body p-6 text-center">
+                        <div class="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-4">
+                            <i class="fab fa-whatsapp text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">WhatsApp VIP</h3>
+                        <p class="text-sm opacity-90 mb-4">Support prioritaire avec réponse instantanée</p>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-center text-sm">
+                                <i class="fas fa-bolt mr-2"></i>
+                                <span>Réponse immédiate</span>
+                            </div>
+                            <div class="flex items-center justify-center text-sm">
+                                <i class="fas fa-crown mr-2"></i>
+                                <span>Support premium 24/7</span>
+                            </div>
+                        </div>
+                        <a href="https://wa.me/229XXXXXXXXX" target="_blank" class="btn btn-white text-green-600 mt-6 w-full font-bold">
+                            <i class="fab fa-whatsapp mr-2"></i>
+                            Démarrer une conversation
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="card bg-gradient-to-br from-blue-500 to-cyan-600 text-white hover:scale-[1.02] transition-transform">
+                    <div class="card-body p-6 text-center">
+                        <div class="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-envelope-open-text text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Email Professionnel</h3>
+                        <p class="text-sm opacity-90 mb-4">Pour les demandes détaillées et documents</p>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-center text-sm">
+                                <i class="fas fa-file-alt mr-2"></i>
+                                <span>Réponse sous 2h</span>
+                            </div>
+                            <div class="flex items-center justify-center text-sm">
+                                <i class="fas fa-paperclip mr-2"></i>
+                                <span>Pièces jointes acceptées</span>
+                            </div>
+                        </div>
+                        <a href="mailto:support@synergycraft.bj" class="btn btn-white text-blue-600 mt-6 w-full font-bold">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Envoyer un email
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Phone -->
+                <div class="card bg-gradient-to-br from-purple-500 to-pink-600 text-white hover:scale-[1.02] transition-transform">
+                    <div class="card-body p-6 text-center">
+                        <div class="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-phone-alt text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Téléphone Direct</h3>
+                        <p class="text-sm opacity-90 mb-4">Discutez directement avec un expert</p>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-center text-sm">
+                                <i class="fas fa-user-tie mr-2"></i>
+                                <span>Experts spécialisés</span>
+                            </div>
+                            <div class="flex items-center justify-center text-sm">
+                                <i class="fas fa-clock mr-2"></i>
+                                <span>8h-18h, Lun-Ven</span>
+                            </div>
+                        </div>
+                        <a href="tel:+22921304560" class="btn btn-white text-purple-600 mt-6 w-full font-bold">
+                            <i class="fas fa-phone-alt mr-2"></i>
+                            Appeler maintenant
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support Ticket -->
+        <div class="max-w-4xl mx-auto">
+            <div class="card bg-base-100 shadow-xl border border-gray-200 dark:border-gray-700">
+                <div class="card-body p-8">
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-ticket-alt text-primary text-2xl"></i>
+                        </div>
+                        <h2 class="text-2xl md:text-3xl font-bold mb-2">Ouvrir un Ticket de Support</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Pour les demandes complexes nécessitant un suivi</p>
+                    </div>
+
+                    <form id="support-ticket-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="label">
+                                    <span class="label-text font-semibold">Nom complet *</span>
+                                </label>
+                                <input type="text" name="name" required class="input input-bordered w-full" placeholder="Votre nom">
+                            </div>
+                            <div>
+                                <label class="label">
+                                    <span class="label-text font-semibold">Email *</span>
+                                </label>
+                                <input type="email" name="email" required class="input input-bordered w-full" placeholder="votre@email.com">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="label">
+                                <span class="label-text font-semibold">Type de problème *</span>
+                            </label>
+                            <select name="issue_type" required class="select select-bordered w-full">
+                                <option value="" disabled selected>Sélectionnez un type</option>
+                                <option value="technical">Problème technique</option>
+                                <option value="billing">Facturation/paiement</option>
+                                <option value="project">Suivi de projet</option>
+                                <option value="website">Site web/développement</option>
+                                <option value="design">Design graphique</option>
+                                <option value="other">Autre</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="label">
+                                <span class="label-text font-semibold">Sujet *</span>
+                            </label>
+                            <input type="text" name="subject" required class="input input-bordered w-full" placeholder="Brève description du problème">
+                        </div>
+
+                        <div>
+                            <label class="label">
+                                <span class="label-text font-semibold">Description détaillée *</span>
+                            </label>
+                            <textarea name="description" required rows="6" class="textarea textarea-bordered w-full" placeholder="Décrivez votre problème en détail..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="label">
+                                <span class="label-text font-semibold">Pièces jointes (optionnel)</span>
+                            </label>
+                            <input type="file" name="attachments" multiple class="file-input file-input-bordered w-full" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
+                            <p class="text-sm text-gray-500 mt-2">Formats acceptés : JPG, PNG, PDF, DOC (max 10MB par fichier)</p>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-4">
+                            <div class="text-sm text-gray-600 dark:text-gray-400">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Nous répondons généralement dans les 2 heures ouvrables
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg px-8">
+                                <i class="fas fa-paper-plane mr-2"></i>
+                                Envoyer le ticket
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Bottom -->
+    <div class="bg-base-200 dark:bg-gray-900 py-12">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto">
+                <h3 class="text-2xl font-bold mb-8 text-center">Vous avez d'autres questions ?</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex items-start space-x-4 p-4 bg-base-100 rounded-2xl">
+                        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-clock text-primary"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold mb-1">Horaires de support</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                <strong>Standard :</strong> Lundi-Vendredi, 8h-18h<br>
+                                <strong>Urgent :</strong> 24h/24, 7j/7<br>
+                                <strong>WhatsApp :</strong> Toujours disponible
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-4 p-4 bg-base-100 rounded-2xl">
+                        <div class="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-phone-alt text-secondary"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold mb-1">Contact rapide</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                <strong>WhatsApp :</strong> +229 XXXXXXXX<br>
+                                <strong>Téléphone :</strong> +229 21 30 45 60<br>
+                                <strong>Email :</strong> support@synergycraft.bj
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-4 p-4 bg-base-100 rounded-2xl">
+                        <div class="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-map-marker-alt text-accent"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold mb-1">Siège social</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                Cotonou, Bénin<br>
+                                Quartier Haie Vive<br>
+                                RDV possible sur rendez-vous
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-4 p-4 bg-base-100 rounded-2xl">
+                        <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold mb-1">SLA Garanti</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                <strong>Réponse :</strong> Sous 15min (urgent)<br>
+                                <strong>Résolution :</strong> Sous 24h (standard)<br>
+                                <strong>Satisfaction :</strong> 99.2% garantie
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Support Page -->
+<script>
+    // Knowledge base data
+    const knowledgeBase = {
+        "devis": {
+            title: "Comment obtenir un devis ?",
+            content: "Pour obtenir un devis personnalisé, contactez-nous via WhatsApp, téléphone ou email en décrivant votre projet. Nous vous répondons sous 24h avec une proposition détaillée.",
+            category: "Général"
+        },
+        "paiement": {
+            title: "Modes de paiement acceptés",
+            content: "Nous acceptons Mobile Money (MTN/Moov), Wave, virements bancaires, cartes Visa/Mastercard et PayPal. Options de paiement échelonné disponibles.",
+            category: "Facturation"
+        },
+        "délai": {
+            title: "Délais de livraison",
+            content: "Site vitrine: 10-15 jours • E-commerce: 15-25 jours • Application web: 1-3 mois • Design: 3-7 jours. Options express disponibles.",
+            category: "Projet"
+        },
+        "support": {
+            title: "Support technique",
+            content: "Support 24/7 pour les clients premium. Support standard: Lun-Ven 8h-18h. Temps de réponse moyen: 15min pour WhatsApp, 2h pour email.",
+            category: "Support"
+        },
+        "bug": {
+            title: "Signaler un bug",
+            content: "Pour signaler un bug, contactez-nous via WhatsApp avec des captures d'écran. Nous corrigeons les bugs critiques sous 24h.",
+            category: "Technique"
+        },
+        "maintenance": {
+            title: "Maintenance préventive",
+            content: "Nous effectuons des maintenances préventives mensuelles. Les clients sont prévenus 48h à l'avance. Pas de downtime pendant les heures de pointe.",
+            category: "Technique"
+        },
+        "facture": {
+            title: "Demander une facture",
+            content: "Les factures sont envoyées automatiquement après paiement. Pour une copie, contactez support@synergycraft.bj avec votre référence.",
+            category: "Facturation"
+        },
+        "formation": {
+            title: "Formation utilisateur",
+            content: "Une formation complète est incluse avec chaque projet. Sessions supplémentaires disponibles. Support documentation en ligne 24/7.",
+            category: "Projet"
+        }
+    };
+
+    // Search function
+    function searchSupport() {
+        const searchInput = document.getElementById('search-support');
+        const query = searchInput.value.toLowerCase().trim();
+        
+        if (!query) {
+            showNotification('Veuillez entrer un terme de recherche', 'warning');
+            return;
+        }
+        
+        // Show loading
+        searchInput.disabled = true;
+        
+        // Simulate search delay
+        setTimeout(() => {
+            let results = [];
+            
+            // Search in knowledge base
+            for (const [key, data] of Object.entries(knowledgeBase)) {
+                if (key.includes(query) || 
+                    data.title.toLowerCase().includes(query) || 
+                    data.content.toLowerCase().includes(query) ||
+                    data.category.toLowerCase().includes(query)) {
+                    results.push(data);
+                }
+            }
+            
+            // Show results
+            if (results.length > 0) {
+                showSearchResults(results, query);
+            } else {
+                showNotification('Aucun résultat trouvé pour "' + query + '"', 'info');
+            }
+            
+            searchInput.disabled = false;
+        }, 500);
+    }
+
+    // Show search results
+    function showSearchResults(results, query) {
+        // Create modal for results
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm';
+        modal.style.animation = 'fadeIn 0.3s ease';
+        
+        let resultsHTML = '';
+        results.forEach((result, index) => {
+            const highlightedTitle = result.title.replace(new RegExp(query, 'gi'), match => `<span class="bg-yellow-200 text-yellow-800 px-1 rounded">${match}</span>`);
+            const highlightedContent = result.content.replace(new RegExp(query, 'gi'), match => `<span class="bg-yellow-200 text-yellow-800 px-1 rounded">${match}</span>`);
+            
+            resultsHTML += `
+                <div class="collapse collapse-plus bg-base-100 border border-gray-200 dark:border-gray-700 rounded-xl mb-3">
+                    <input type="radio" name="search-results" ${index === 0 ? 'checked' : ''} />
+                    <div class="collapse-title font-semibold">
+                        ${highlightedTitle}
+                        <span class="badge badge-sm ml-2">${result.category}</span>
+                    </div>
+                    <div class="collapse-content">
+                        <p>${highlightedContent}</p>
+                        <div class="mt-3">
+                            <button onclick="contactAboutTopic('${result.title}')" class="btn btn-xs btn-primary">
+                                <i class="fas fa-comment mr-1"></i>
+                                En savoir plus
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        modal.innerHTML = `
+            <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden animate-modal-in">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Résultats pour "${query}"</h3>
+                        <button onclick="closeModal(this)" class="btn btn-ghost btn-circle btn-sm">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        ${results.length} résultat${results.length > 1 ? 's' : ''} trouvé${results.length > 1 ? 's' : ''}
+                    </div>
+                    <div class="overflow-y-auto max-h-[50vh] pr-2">
+                        ${resultsHTML}
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                            Vous ne trouvez pas ce que vous cherchez ?
+                        </p>
+                        <div class="flex gap-3">
+                            <button onclick="closeModal(this); document.getElementById('search-support').value = ''; document.getElementById('search-support').focus();" class="btn btn-ghost flex-1">
+                                Nouvelle recherche
+                            </button>
+                            <button onclick="openSupportTicket()" class="btn btn-primary flex-1">
+                                <i class="fas fa-ticket-alt mr-2"></i>
+                                Ouvrir un ticket
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Contact about specific topic
+    function contactAboutTopic(topic) {
+        const phoneNumber = '229XXXXXXXXX';
+        const message = `Bonjour, je souhaite en savoir plus sur : ${topic}`;
+        const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+        
+        window.open(url, '_blank');
+        closeModal();
+    }
+
+    // Open support ticket form
+    function openSupportTicket() {
+        closeModal();
+        // Scroll to ticket form
+        const ticketForm = document.querySelector('#support-ticket-form');
+        if (ticketForm) {
+            ticketForm.scrollIntoView({ behavior: 'smooth' });
+            // Focus on first input
+            setTimeout(() => {
+                const firstInput = ticketForm.querySelector('input[name="name"]');
+                if (firstInput) firstInput.focus();
+            }, 500);
+        }
+    }
+
+    // Submit ticket form
+    document.getElementById('support-ticket-form')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        
+        // Simple validation
+        if (!data.name || !data.email || !data.issue_type || !data.subject || !data.description) {
+            showNotification('Veuillez remplir tous les champs obligatoires', 'error');
+            return;
+        }
+        
+        // Show loading
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Envoi en cours...';
+        submitBtn.disabled = true;
+        
+        // Simulate API call
+        setTimeout(() => {
+            // In a real app, you would send this to your backend
+            console.log('Ticket data:', data);
+            
+            // Show success message
+            showNotification('Ticket envoyé avec succès ! Nous vous répondrons sous 2h.', 'success');
+            
+            // Reset form
+            this.reset();
+            
+            // Reset button
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            
+            // Optionally redirect to confirmation
+            // window.location.href = '/support/confirmation';
+        }, 1500);
+    });
+
+    // Close modal function
+    function closeModal(btn) {
+        const modal = btn ? btn.closest('.fixed') : document.querySelector('.fixed.inset-0.z-\\[100\\]');
+        if (modal) {
+            modal.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => {
+                modal.remove();
+                document.body.style.overflow = '';
+            }, 300);
+        }
+    }
+
+    // Notification system
+    function showNotification(message, type = 'info') {
+        // Remove existing notifications
+        document.querySelectorAll('.toast').forEach(toast => toast.remove());
+        
+        const notification = document.createElement('div');
+        notification.className = 'toast toast-top toast-center z-[99]';
+        notification.innerHTML = `
+            <div class="alert alert-${type} shadow-lg text-white animate-slide-in max-w-sm">
+                <div class="flex items-center">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} text-lg mr-3"></i>
+                    <span class="text-sm md:text-base">${message}</span>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.querySelector('.alert').classList.add('animate-slide-out');
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Focus on search input
+        const searchInput = document.getElementById('search-support');
+        if (searchInput) {
+            searchInput.focus();
+            
+            // Add enter key support
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchSupport();
+                }
+            });
+        }
+        
+        // Add animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes modal-in {
+                from {
+                    opacity: 0;
+                    transform: scale(0.95) translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+            
+            @keyframes slide-in {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            @keyframes slide-out {
+                to {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+            }
+            
+            .animate-modal-in {
+                animation: modal-in 0.3s ease forwards;
+            }
+            
+            .animate-slide-in {
+                animation: slide-in 0.3s ease forwards;
+            }
+            
+            .animate-slide-out {
+                animation: slide-out 0.3s ease forwards;
+            }
+            
+            /* Smooth transitions */
+            .transition-all {
+                transition-property: all;
+                transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+                transition-duration: 200ms;
+            }
+            
+            /* Card hover effects */
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Add hover classes
+        document.querySelectorAll('.card').forEach(card => {
+            card.classList.add('card-hover');
+        });
+        
+        // Auto-open first FAQ if URL has hash
+        if (window.location.hash === '#faq') {
+            const firstFaq = document.querySelector('#faq-accordion input[type="radio"]');
+            if (firstFaq) {
+                firstFaq.checked = true;
+            }
+        }
+    });
+</script>
+
+<style>
+    /* Custom styles for support page */
+    .collapse-content ul {
+        list-style-type: disc;
+        padding-left: 1.5rem;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .collapse-content li {
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Gradient backgrounds */
+    .bg-gradient-support {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .text-4xl {
+            font-size: 2rem;
+        }
+        
+        .text-6xl {
+            font-size: 2.5rem;
+        }
+    }
+    
+    /* File input styling */
+    .file-input::file-selector-button {
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .file-input::file-selector-button:hover {
+        background-color: var(--primary-focus);
+    }
+    
+    /* Badge styling */
+    .badge {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    /* Search highlight */
+    .bg-yellow-200 {
+        background-color: #fef9c3;
+    }
+    
+    .dark .bg-yellow-200 {
+        background-color: #854d0e;
+        color: #fef9c3;
+    }
+    
+    /* Smooth scroll for page */
+    html {
+        scroll-behavior: smooth;
+    }
+</style>
+{% endblock %}

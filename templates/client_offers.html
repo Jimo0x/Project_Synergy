@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .viewport {
+        position: relative;
+        min-height: 100vh;
+        background-color: #030305;
+        overflow-x: hidden;
+        font-family: 'Space Grotesk', sans-serif;
+        color: #E8E8F0;
+        padding: 2rem;
+    }
+
+    .nebula-bg {
+        position: absolute;
+        inset: 0;
+        background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=1924&q=80');
+        background-size: cover;
+        background-position: center;
+        filter: blur(80px) brightness(0.15);
+        transform: scale(1.1);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .container {
+        position: relative;
+        z-index: 10;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border-radius: 1.75rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .premium-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .pill-row {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .sc-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 1rem;
+        border-radius: 100px;
+        font-size: 0.82rem;
+        font-weight: 500;
+        cursor: pointer;
+        border: 1px solid rgba(99,102,241,0.2);
+        background: transparent;
+        color: #9CA3AF;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .sc-pill:hover, .sc-pill.active {
+        border-color: #818cf8;
+        color: white;
+        background: rgba(99,102,241,0.1);
+    }
+
+    .offers-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+        .offers-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .offer-card {
+        background: rgba(255, 255, 255, 0.01);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .offer-card:hover {
+        background: rgba(99, 102, 241, 0.04);
+        border-color: rgba(99, 102, 241, 0.2);
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(99, 102, 241, 0.1);
+    }
+
+    .btn-contact {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #7c3aed, #818cf8);
+        color: white;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.875rem;
+        text-decoration: none;
+        transition: transform 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-contact:hover {
+        transform: translateY(-1px);
+    }
+</style>
+
+<div class="viewport">
+    <div class="nebula-bg"></div>
+
+    <div class="container">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <span style="font-size:0.7rem; font-weight:700; color:#818cf8; text-transform:uppercase; letter-spacing:0.1em;">Besoins des Clients</span>
+                <h1 class="premium-title text-white" style="font-size: 2.2rem; margin: 0.25rem 0;">Offres Projets Clients</h1>
+                <p style="color: rgba(255,255,255,0.4); font-size: 0.9rem;">Consultez les requêtes de projets des clients et répondez-y directement.</p>
+            </div>
+            <a href="{% url 'home_freelancer' %}" class="sc-pill">
+                <i class="fas fa-arrow-left"></i> Tableau de bord
+            </a>
+        </div>
+
+        <!-- Filtrage par catégorie -->
+        <div class="pill-row">
+            <a href="?category=all" class="sc-pill {% if selected_category == 'all' %}active{% endif %}">Tout voir</a>
+            <a href="?category=web" class="sc-pill {% if selected_category == 'web' %}active{% endif %}">Web</a>
+            <a href="?category=design" class="sc-pill {% if selected_category == 'design' %}active{% endif %}">Design</a>
+            <a href="?category=marketing" class="sc-pill {% if selected_category == 'marketing' %}active{% endif %}">Marketing</a>
+            <a href="?category=branding" class="sc-pill {% if selected_category == 'branding' %}active{% endif %}">Branding</a>
+            <a href="?category=seo" class="sc-pill {% if selected_category == 'seo' %}active{% endif %}">SEO</a>
+            <a href="?category=maintenance" class="sc-pill {% if selected_category == 'maintenance' %}active{% endif %}">Maintenance</a>
+            <a href="?category=writing" class="sc-pill {% if selected_category == 'writing' %}active{% endif %}">Rédaction</a>
+            <a href="?category=other" class="sc-pill {% if selected_category == 'other' %}active{% endif %}">Autres</a>
+        </div>
+
+        <div class="offers-grid">
+            {% if offers %}
+                {% for offer in offers %}
+                    <div class="offer-card">
+                        <div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
+                                <span style="font-size:0.75rem; text-transform:uppercase; font-weight:700; color:#818cf8; background:rgba(99,102,241,0.1); padding:0.25rem 0.5rem; border-radius:6px;">
+                                    {{ offer.get_category_display_name }}
+                                </span>
+                                <span style="font-size:0.85rem; color:#34d399; font-weight:700;">
+                                    {% if offer.budget_min and offer.budget_max %}
+                                        {{ offer.budget_min|floatformat:0 }} - {{ offer.budget_max|floatformat:0 }} FCFA
+                                    {% elif offer.budget_max %}
+                                        Jusqu'à {{ offer.budget_max|floatformat:0 }} FCFA
+                                    {% else %}
+                                        Budget à débattre
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <h3 class="premium-title text-white" style="font-size: 1.25rem; margin-bottom: 0.5rem;">{{ offer.title }}</h3>
+                            <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6); line-height: 1.5;">{{ offer.description }}</p>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-top: 1px solid rgba(255,255,255,0.05); padding-top:1rem; margin-top:0.5rem; flex-wrap:wrap; gap:0.5rem;">
+                            <div>
+                                <span style="font-size:0.75rem; color:rgba(255,255,255,0.3); display:block;">Publié par</span>
+                                <span style="font-size:0.8rem; font-weight:600; color:white;">{{ offer.client.first_name|default:offer.client.email }}</span>
+                            </div>
+                            <a href="{% url 'messages' %}?start={{ offer.client.pk }}" class="btn-contact">
+                                <i class="far fa-comments"></i> Proposer mes services
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="glass-card text-center" style="grid-column: span 2; padding: 4rem 2rem;">
+                    <i class="fas fa-bullhorn" style="font-size:3rem; color:rgba(255,255,255,0.1); margin-bottom: 1rem;"></i>
+                    <p style="color: rgba(255,255,255,0.3); font-size:1.1rem;">Aucune offre correspondante trouvée pour cette catégorie.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

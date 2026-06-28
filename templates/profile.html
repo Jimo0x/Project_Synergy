@@ -1,0 +1,522 @@
+{% extends 'base.html' %}
+
+{% block title %}Profil Expert - {{ user.first_name }} | SynergyCraft{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.03);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    }
+
+    /* Arrière-plan animé subtil */
+    body {
+        background-color: #0f172a;
+        background-image: 
+            radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0, transparent 50%), 
+            radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0, transparent 50%);
+    }
+
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-card:hover {
+        border-color: rgba(99, 102, 241, 0.4);
+        transform: translateY(-4px);
+    }
+
+    .profile-header-gradient {
+        background: var(--accent-gradient);
+        height: 280px;
+        position: relative;
+    }
+
+    .avatar-container {
+        margin-top: -80px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .avatar-wrapper {
+        padding: 6px;
+        background: var(--accent-gradient);
+        border-radius: 9999px;
+        display: inline-block;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-tab-active {
+        background: var(--accent-gradient);
+        color: white !important;
+    }
+
+    .stat-value-gradient {
+        background: var(--accent-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+
+    .floating-badge {
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pb-20">
+    <div class="relative">
+        <div class="profile-header-gradient w-full rounded-b-[3rem] shadow-2xl">
+            <div class="absolute inset-0 opacity-20" style="background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');"></div>
+            
+            <div class="absolute top-6 right-6 flex gap-3">
+                <button class="btn btn-sm glass border-none text-white hover:bg-white/20">
+                    <i class="fas fa-share-alt mr-2"></i>Partager
+                </button>
+                <label for="banner-upload" class="btn btn-sm glass border-none text-white hover:bg-white/20 cursor-pointer">
+                    <i class="fas fa-camera mr-2"></i>Bannière
+                </label>
+            </div>
+        </div>
+
+        <div class="container mx-auto px-6">
+            <div class="avatar-container flex flex-col md:flex-row items-end md:items-center gap-6">
+                <div class="avatar-wrapper">
+                    <div class="w-40 h-40 rounded-full border-4 border-[#0f172a] overflow-hidden bg-slate-800">
+                        {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="flex items-center justify-center h-full text-5xl font-bold text-white/20">
+                                {{ user.first_name|first }}{{ user.last_name|first }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="flex-1 pb-2">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <h1 class="text-4xl font-extrabold text-white">{{ user.first_name }} {{ user.last_name }}</h1>
+                        {% if user.is_verified %}
+                            <div class="tooltip" data-tip="Profil vérifié">
+                                <i class="fas fa-check-circle text-blue-400 text-2xl"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <p class="text-slate-400 text-lg flex items-center gap-2 mt-1">
+                        <i class="fas fa-briefcase text-sm"></i>
+                        <span class="capitalize">{{ user.role }}</span> 
+                        <span class="mx-2 text-slate-600">•</span>
+                        <i class="fas fa-map-marker-alt text-sm"></i>
+                        {{ user.location|default:"Nomade Digital" }}
+                    </p>
+                </div>
+
+                <div class="flex gap-3 mb-2">
+                    <button class="btn btn-primary shadow-lg shadow-indigo-500/20" onclick="document.getElementById('edit-modal').showModal()">
+                        <i class="fas fa-user-edit mr-2"></i>Éditer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-6 mt-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <div class="lg:col-span-4 space-y-6">
+                <div class="glass-card rounded-3xl p-6">
+                    <h3 class="text-white font-bold text-xl mb-4">Réputation</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <div class="badge badge-lg py-4 bg-indigo-500/10 border-indigo-500/30 text-indigo-300 gap-2">
+                            <i class="fas fa-star text-yellow-500"></i> {{ average_rating|floatformat:1 }} Score
+                        </div>
+                        <div class="badge badge-lg py-4 bg-emerald-500/10 border-emerald-500/30 text-emerald-300 gap-2">
+                            <i class="fas fa-shield-alt"></i> Niveau {{ user.level|default:"1" }}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 space-y-3">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-400">Progression niveau</span>
+                            <span class="text-indigo-400">75%</span>
+                        </div>
+                        <progress class="progress progress-primary w-full h-2" value="75" max="100"></progress>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-3xl p-6">
+                    <h3 class="text-white font-bold text-xl mb-4">À propos</h3>
+                    <p class="text-slate-400 leading-relaxed">
+                        {{ user.bio|default:"Aucune description fournie. Cet utilisateur préfère laisser ses projets parler pour lui." }}
+                    </p>
+                    <div class="mt-6 flex gap-4">
+                        {% if user.linkedin %}
+                        <a href="{{ user.linkedin }}" class="text-slate-400 hover:text-blue-400 transition-colors text-xl"><i class="fab fa-linkedin"></i></a>
+                        {% endif %}
+                        {% if user.github %}
+                        <a href="{{ user.github }}" class="text-slate-400 hover:text-white transition-colors text-xl"><i class="fab fa-github"></i></a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="glass-card rounded-[2rem] p-8 text-center md:text-left">
+                        <p class="text-slate-500 text-sm font-bold uppercase tracking-widest mb-2">Projets</p>
+                        <h4 class="stat-value-gradient text-5xl">{{ active_projects_count }}</h4>
+                        <p class="text-slate-400 mt-2 text-sm">Actuellement en cours</p>
+                    </div>
+                    <div class="glass-card rounded-[2rem] p-8 text-center md:text-left">
+                        <p class="text-slate-500 text-sm font-bold uppercase tracking-widest mb-2">Succès</p>
+                        <h4 class="stat-value-gradient text-5xl text-emerald-400">{{ completed_projects_count }}</h4>
+                        <p class="text-slate-400 mt-2 text-sm">Projets livrés</p>
+                    </div>
+                    <div class="glass-card rounded-[2rem] p-8 text-center md:text-left">
+                        <p class="text-slate-500 text-sm font-bold uppercase tracking-widest mb-2">Impact</p>
+                        <h4 class="stat-value-gradient text-5xl">{{ total_income|floatformat:0 }} FCFA</h4>
+                        <p class="text-slate-400 mt-2 text-sm">Valeur générée</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-2 p-1.5 bg-slate-900/50 rounded-2xl border border-slate-800 w-fit">
+                    <button class="btn btn-ghost hover:bg-slate-800 rounded-xl nav-tab-active px-8" onclick="switchTab('overview')">Aperçu</button>
+                    <button class="btn btn-ghost hover:bg-slate-800 rounded-xl text-slate-400 px-8" onclick="switchTab('projects')">Portfolio</button>
+                    <button class="btn btn-ghost hover:bg-slate-800 rounded-xl text-slate-400 px-8" onclick="switchTab('billing')">Finances</button>
+                </div>
+
+                <div id="overview" class="tab-content space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div class="glass-card rounded-3xl p-8">
+                        <div class="flex justify-between items-center mb-8">
+                            <h3 class="text-2xl font-bold text-white">Compétences Clés</h3>
+                            <button class="btn btn-circle btn-sm btn-ghost text-slate-400"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <div class="flex flex-wrap gap-4">
+                            {% for skill in user.skills.all %}
+                            <div class="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-3 group hover:bg-indigo-500/20 transition-all cursor-default">
+                                <span class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)]"></span>
+                                <span class="text-slate-200 font-medium">{{ skill.name }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-3xl p-8">
+                        <h3 class="text-2xl font-bold text-white mb-6">Activité récente</h3>
+                        <div class="space-y-6">
+                            {% for project in projects|slice:":3" %}
+                            <div class="flex items-start gap-4 p-4 rounded-2xl hover:bg-white/5 transition-colors">
+                                <div class="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                    <i class="fas fa-rocket"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-bold">{{ project.title }}</h4>
+                                    <p class="text-slate-500 text-sm">Mis à jour il y a 2 jours • <span class="text-indigo-400">{{ project.status }}</span></p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Projects -->
+                <div id="projects" class="tab-content hidden space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div class="glass-card rounded-3xl p-8">
+                        <div class="flex justify-between items-center mb-8">
+                            <h3 class="text-2xl font-bold text-white">Historique des projets</h3>
+                        </div>
+                        
+                        {% if projects %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {% for project in projects %}
+                                    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-indigo-500/40 transition-all duration-300">
+                                        <div class="flex justify-between items-start mb-4">
+                                            <span class="text-xs font-semibold uppercase tracking-wider text-indigo-400">
+                                                {{ project.created_at|date:"d M Y" }}
+                                            </span>
+                                            <span class="text-lg font-bold text-white">{{ project.price }} FCFA</span>
+                                        </div>
+                                        <h4 class="text-white font-bold text-lg mb-2">{{ project.service.title }}</h4>
+                                        <p class="text-slate-400 text-sm mb-4 line-clamp-2">
+                                            {{ project.instructions|default:"Aucune instruction fournie" }}
+                                        </p>
+                                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs text-slate-500">Client:</span>
+                                                <span class="text-sm font-semibold text-slate-300">{{ project.client.first_name|default:project.client.email|truncatechars:15 }}</span>
+                                            </div>
+                                            <span class="badge {% if project.status == 'completed' %}badge-success{% elif project.status == 'cancelled' %}badge-error{% else %}badge-warning{% endif %}">
+                                                {{ project.get_status_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-12 text-slate-500">
+                                <i class="fas fa-folder-open text-5xl mb-4 text-slate-600"></i>
+                                <p class="text-lg">Aucun projet trouvé</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Tab Billing -->
+                <div id="billing" class="tab-content hidden space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div class="glass-card rounded-3xl p-8">
+                        <h3 class="text-2xl font-bold text-white mb-6">Finances & Facturation</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-6">
+                                <span class="text-slate-400 text-sm">Revenus cumulés</span>
+                                <h4 class="text-white text-3xl font-extrabold mt-2">{{ total_income }} FCFA</h4>
+                                <p class="text-xs text-indigo-300 mt-2"><i class="fas fa-check-circle mr-1"></i> Taux de complétion de 100%</p>
+                            </div>
+                            <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6">
+                                <span class="text-slate-400 text-sm">Projets payés</span>
+                                <h4 class="text-white text-3xl font-extrabold mt-2">{{ completed_projects_count }}</h4>
+                                <p class="text-xs text-emerald-300 mt-2"><i class="fas fa-piggy-bank mr-1"></i> Fonds sécurisés sur SynergyCraft</p>
+                            </div>
+                        </div>
+
+                        <h4 class="text-lg font-bold text-white mb-4">Transactions récentes</h4>
+                        {% if projects %}
+                            <div class="overflow-x-auto">
+                                <table class="table w-full text-slate-300">
+                                    <thead>
+                                        <tr class="text-slate-400 border-b border-white/10">
+                                            <th>Projet</th>
+                                            <th>Type</th>
+                                            <th>Date</th>
+                                            <th>Montant</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for project in projects %}
+                                            <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                                <td class="font-semibold text-white">{{ project.service.title }}</td>
+                                                <td>
+                                                    {% if user.role == 'freelancer' %}
+                                                        <span class="text-emerald-400">Versement</span>
+                                                    {% else %}
+                                                        <span class="text-red-400">Paiement</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ project.created_at|date:"d/m/Y" }}</td>
+                                                <td class="font-bold text-white">{{ project.price }} FCFA</td>
+                                                <td>
+                                                    <span class="badge {% if project.status == 'completed' %}badge-success{% else %}badge-ghost{% endif %}">
+                                                        {{ project.get_status_display }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-slate-500 text-center py-6">Aucune transaction enregistrée</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Modifier le profil -->
+<dialog id="edit-modal" class="modal modal-bottom sm:modal-middle animate-fade-in">
+    <div class="modal-box bg-[#1e293b] border border-slate-800 text-white rounded-3xl max-w-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="font-extrabold text-2xl flex items-center gap-2">
+                <i class="fas fa-user-edit text-indigo-500"></i> Éditer mon Profil
+            </h3>
+            <button type="button" class="btn btn-sm btn-circle btn-ghost" onclick="document.getElementById('edit-modal').close()">✕</button>
+        </div>
+        
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Avatar Upload -->
+                <div class="form-control md:col-span-2 flex flex-col items-center p-4 bg-slate-900/50 rounded-2xl border border-slate-800">
+                    <label class="label mb-2">
+                        <span class="label-text text-slate-300 font-semibold">Photo de profil</span>
+                    </label>
+                    <div class="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
+                        <div class="w-20 h-20 rounded-full overflow-hidden bg-slate-800 border-2 border-indigo-500 flex items-center justify-center">
+                            {% if user.avatar %}
+                                <img src="{{ user.avatar.url }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <i class="fas fa-user text-3xl text-slate-600"></i>
+                            {% endif %}
+                        </div>
+                        <input type="file" name="avatar" accept="image/*" class="file-input file-input-bordered file-input-primary w-full max-w-xs bg-slate-800 border-slate-700 text-white">
+                    </div>
+                </div>
+
+                <!-- First Name -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text text-slate-300 font-semibold">Prénom</span>
+                    </label>
+                    <input type="text" name="first_name" value="{{ user.first_name }}" class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                </div>
+
+                <!-- Last Name -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text text-slate-300 font-semibold">Nom</span>
+                    </label>
+                    <input type="text" name="last_name" value="{{ user.last_name }}" class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                </div>
+
+                <!-- Email -->
+                <div class="form-control md:col-span-2">
+                    <label class="label">
+                        <span class="label-text text-slate-300 font-semibold">Adresse Email</span>
+                    </label>
+                    <input type="email" name="email" value="{{ user.email }}" required class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                </div>
+
+                {% if user.role == 'freelancer' %}
+                    <!-- Bio -->
+                    <div class="form-control md:col-span-2">
+                        <label class="label">
+                            <span class="label-text text-slate-300 font-semibold">Biographie / Présentation</span>
+                        </label>
+                        <textarea name="bio" rows="3" class="textarea textarea-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">{{ profile.bio|default:'' }}</textarea>
+                    </div>
+
+                    <!-- Skills -->
+                    <div class="form-control md:col-span-2">
+                        <label class="label">
+                            <span class="label-text text-slate-300 font-semibold">Compétences</span>
+                        </label>
+                        <input type="text" name="skills" value="{{ skills_string }}" placeholder="Python, Django, JavaScript, React" class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                        <span class="text-xs text-slate-500 mt-1">Séparez vos compétences par des virgules</span>
+                    </div>
+
+                    <!-- Hourly Rate -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-slate-300 font-semibold">Taux horaire ( FCFA)</span>
+                        </label>
+                        <input type="number" name="hourly_rate" value="{{ profile.hourly_rate|default:'' }}" min="1" step="0.01" class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                    </div>
+
+                    <!-- Portfolio URL -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-slate-300 font-semibold">URL de Portfolio</span>
+                        </label>
+                        <input type="url" name="portfolio_url" value="{{ profile.portfolio_url|default:'' }}" placeholder="https://..." class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                    </div>
+
+                    <!-- Social Networks -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-slate-300 font-semibold">LinkedIn URL</span>
+                        </label>
+                        <input type="url" name="linkedin_url" value="{{ profile.linkedin_url|default:'' }}" placeholder="https://linkedin.com/in/..." class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-slate-300 font-semibold">GitHub URL</span>
+                        </label>
+                        <input type="url" name="github_url" value="{{ profile.github_url|default:'' }}" placeholder="https://github.com/..." class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                    </div>
+
+                    <!-- Availability -->
+                    <div class="form-control md:col-span-2">
+                        <label class="label cursor-pointer justify-start gap-3">
+                            <input type="checkbox" name="available" {% if profile.available %}checked{% endif %} class="checkbox checkbox-primary">
+                            <span class="label-text text-slate-300 font-semibold">Disponible pour de nouvelles missions</span>
+                        </label>
+                    </div>
+
+                {% elif user.role == 'client' %}
+                    <!-- Phone -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-slate-300 font-semibold">Téléphone</span>
+                        </label>
+                        <input type="text" name="phone" value="{{ profile.phone|default:'' }}" class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                    </div>
+
+                    <!-- Preferred Payment -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-slate-300 font-semibold">Moyen de paiement favori</span>
+                        </label>
+                        <select name="preferred_payment" class="select select-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                            <option value="mtn_momo" {% if profile.preferred_payment == 'mtn_momo' %}selected{% endif %}>MTN Mobile Money</option>
+                            <option value="orange_money" {% if profile.preferred_payment == 'orange_money' %}selected{% endif %}>Orange Money</option>
+                            <option value="stripe" {% if profile.preferred_payment == 'stripe' %}selected{% endif %}>Stripe</option>
+                            <option value="paypal" {% if profile.preferred_payment == 'paypal' %}selected{% endif %}>PayPal</option>
+                        </select>
+                    </div>
+
+                    <!-- City -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-slate-300 font-semibold">Ville</span>
+                        </label>
+                        <input type="text" name="city" value="{{ profile.city|default:'' }}" class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                    </div>
+
+                    <!-- Country -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-slate-300 font-semibold">Pays</span>
+                        </label>
+                        <input type="text" name="country" value="{{ profile.country|default:'Bénin' }}" class="input input-bordered bg-slate-800 border-slate-700 text-white rounded-xl focus:border-indigo-500">
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="modal-action mt-8">
+                <button type="button" class="btn btn-ghost text-slate-400 rounded-xl" onclick="document.getElementById('edit-modal').close()">Annuler</button>
+                <button type="submit" class="btn btn-primary rounded-xl px-8 shadow-lg shadow-indigo-500/20">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<script>
+    function switchTab(tabId) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(function(content) {
+            content.classList.add('hidden');
+        });
+        
+        // Show active tab content
+        document.getElementById(tabId).classList.remove('hidden');
+        
+        // Remove active class from all tab buttons
+        event.currentTarget.parentElement.querySelectorAll('button').forEach(function(btn) {
+            btn.classList.remove('nav-tab-active');
+            btn.classList.add('text-slate-400');
+        });
+        
+        // Add active class to clicked button
+        event.currentTarget.classList.add('nav-tab-active');
+        event.currentTarget.classList.remove('text-slate-400');
+    }
+</script>
+
+{% endblock %}

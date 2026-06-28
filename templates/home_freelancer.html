@@ -1,0 +1,525 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* ── CONFIGURATION & VIEWPORT GLOBALS ── */
+    .dashboard-viewport {
+        position: relative;
+        min-height: 100vh;
+        background-color: #030305;
+        overflow-x: hidden;
+        font-family: 'Space Grotesk', sans-serif;
+        color: #E8E8F0;
+        padding: 2rem;
+    }
+
+    .nebula-bg {
+        position: absolute;
+        inset: 0;
+        background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=1924&q=80');
+        background-size: cover;
+        background-position: center;
+        filter: blur(80px) brightness(0.15);
+        transform: scale(1.1);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .blur-glow {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(140px);
+        opacity: 0.18;
+        pointer-events: none;
+        z-index: 1;
+    }
+    .glow-cyan   { background: #06b6d4; width: 500px; height: 500px; top: -10%; left: 30%; }
+    .glow-purple { background: #7c3aed; width: 600px; height: 600px; bottom: -10%; right: 10%; }
+
+    /* ── TOPBAR ── */
+    .topbar {
+        position: relative;
+        z-index: 20;
+        max-width: 1600px;
+        margin: 0 auto 1.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        justify-content: flex-end;
+    }
+
+    .topbar-icon-btn {
+        position: relative;
+        width: 44px;
+        height: 44px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 0.875rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255,255,255,0.5);
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+
+    .topbar-icon-btn:hover {
+        border-color: rgba(124,58,237,0.3);
+        color: white;
+        background: rgba(255,255,255,0.05);
+    }
+
+    .topbar-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        width: 16px;
+        height: 16px;
+        background: #f43f5e;
+        border-radius: 50%;
+        font-size: 0.5rem;
+        font-weight: 700;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #030305;
+    }
+
+    /* ── LAYOUT PRINCIPAL ── */
+    .workspace-layout {
+        position: relative;
+        z-index: 10;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    @media (min-width: 1024px) {
+        .workspace-layout { grid-template-columns: 360px 1fr; align-items: start; }
+    }
+
+    /* ── PANNEAU GAUCHE ── */
+    .holo-welcome-panel {
+        background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+        border: 1px solid rgba(255,255,255,0.07);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border-radius: 2.5rem;
+        padding: 2.5rem 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+    }
+
+    /* Avatar & Bague de progression */
+    .avatar-progress-container { 
+        position: relative; 
+        width: 130px; 
+        height: 130px; 
+        margin: 0 auto 1.75rem; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        cursor: pointer;
+    }
+    .progress-ring-svg { 
+        position: absolute; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        transform: rotate(-90deg); 
+    }
+    .progress-ring-circle { 
+        fill: transparent; 
+        stroke-width: 4; 
+        stroke-linecap: round; 
+        transition: stroke-dashoffset 0.8s ease; 
+    }
+    
+    .avatar-portal { 
+        position: absolute; 
+        inset: 8px; 
+        border-radius: 50%; 
+        background: #07070c; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        overflow: hidden; 
+        border: 1px solid rgba(255,255,255,0.08); 
+        width: calc(100% - 16px);
+        height: calc(100% - 16px);
+    }
+    .avatar-portal img { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover; 
+    }
+    .avatar-overlay-cam {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        color: white;
+        font-size: 1.5rem;
+        border-radius: 50%;
+    }
+    .avatar-progress-container:hover .avatar-overlay-cam { opacity: 1; }
+
+    /* Badge de vérification */
+    .status-level-badge { 
+        display: inline-block; 
+        padding: 0.35rem 0.85rem; 
+        border-radius: 100px; 
+        font-size: 0.65rem; 
+        font-weight: 700; 
+        text-transform: uppercase; 
+        letter-spacing: 0.05em; 
+        margin-top: 0.5rem;
+    }
+    .lvl-verified { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; box-shadow: 0 0 15px rgba(99,102,241,0.15); }
+
+    /* Stats 3 colonnes */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        margin-top: 1.75rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .stat-item { text-align: center; padding: 0.5rem; }
+    .stat-item + .stat-item { border-left: 1px solid rgba(255,255,255,0.05); }
+
+    .stat-val {
+        display: block;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: white;
+        line-height: 1;
+        margin-bottom: 0.3rem;
+    }
+
+    .stat-label {
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(255,255,255,0.3);
+    }
+
+    /* Actions rapides gauche */
+    .left-quick-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .left-action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.7rem 0.875rem;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 0.875rem;
+        color: rgba(255,255,255,0.55);
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .left-action-btn:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.1);
+        color: white;
+        transform: translateX(4px);
+    }
+
+    .left-action-btn .btn-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    /* ── BENTO GRID DROITE ── */
+    .bento-canvas {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 1.25rem;
+    }
+
+    .bento-item {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 1.75rem;
+        padding: 1.75rem;
+        position: relative;
+        overflow: hidden;
+        transition: border-color 0.3s ease;
+    }
+
+    .bento-item:hover { border-color: rgba(99,102,241,0.2); }
+
+    .size-wide   { grid-column: span 6; }
+    .size-ml     { grid-column: span 6; }
+    .size-mr     { grid-column: span 6; }
+    .size-sm     { grid-column: span 6; }
+
+    @media (min-width: 768px) {
+        .size-ml { grid-column: span 4; }
+        .size-mr { grid-column: span 2; }
+        .size-sm { grid-column: span 3; }
+    }
+
+    @media (min-width: 1280px) {
+        .size-wide { grid-column: span 6; }
+        .size-ml   { grid-column: span 4; }
+        .size-mr   { grid-column: span 2; }
+        .size-sm   { grid-column: span 3; }
+    }
+
+    .premium-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        color: rgba(255,255,255,0.25);
+    }
+    .empty-state i { font-size: 1.5rem; margin-bottom: 0.75rem; display: block; }
+    .empty-state p { font-size: 0.8rem; line-height: 1.5; }
+    .empty-state a { color: #818cf8; font-weight: 600; font-size: 0.78rem; margin-top: 0.625rem; display: inline-block; text-decoration: none; }
+
+    /* Offer list container */
+    .offers-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .offer-item {
+        background: rgba(255,255,255,0.01);
+        border: 1px solid rgba(255,255,255,0.04);
+        border-radius: 1.25rem;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    .offer-item:hover {
+        background: rgba(99,102,241,0.04);
+        border-color: rgba(99,102,241,0.2);
+        transform: translateY(-2px);
+    }
+    .offer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+</style>
+
+<div class="dashboard-viewport">
+    <div class="nebula-bg"></div>
+    <div class="blur-glow glow-cyan"></div>
+    <div class="blur-glow glow-purple"></div>
+
+    {% if messages %}
+    <div class="relative z-20 max-w-1600px mx-auto mb-4" style="max-width:1600px;">
+        {% for message in messages %}
+        <div class="px-5 py-3 rounded-xl text-sm {% if message.tags == 'error' %}bg-red-500/10 border border-red-500/20 text-red-400{% elif message.tags == 'success' %}bg-green-500/10 border border-green-500/20 text-green-400{% else %}bg-blue-500/10 border border-blue-500/20 text-blue-400{% endif %}">
+            <i class="fas {% if message.tags == 'error' %}fa-exclamation-triangle{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} mr-2"></i> {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="topbar">
+        <a href="{% url 'messages' %}" class="topbar-icon-btn" title="Messages">
+            <i class="fas fa-comment-dots"></i>
+            {% if unread_messages %}<span class="topbar-badge">{{ unread_messages }}</span>{% endif %}
+        </a>
+    </div>
+
+    <div class="workspace-layout">
+        <!-- PANNEAU GAUCHE -->
+        <aside class="holo-welcome-panel" id="left-panel">
+            <div class="avatar-progress-container">
+                <svg class="progress-ring-svg" width="130" height="130" viewBox="0 0 130 130" aria-hidden="true">
+                    <circle class="progress-ring-circle" cx="65" cy="65" r="61" stroke="rgba(255,255,255,0.05)"></circle>
+                    <circle id="progressCircle" class="progress-ring-circle" cx="65" cy="65" r="61" stroke="#818cf8" stroke-dasharray="383.27" stroke-dashoffset="95.8"></circle>
+                </svg>
+
+                <div class="avatar-portal">
+                    {% if user.freelancer_profile.avatar %}
+                        <img src="{{ user.freelancer_profile.avatar.url }}" alt="Photo de profil" id="avatarImg">
+                    {% else %}
+                        <span style="font-size: 1.8rem; font-weight: 700; color: white;">{{ user.first_name|first|upper|default:"?" }}{{ user.last_name|first|upper }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.2rem;">
+                <span class="status-level-badge lvl-verified">
+                    Freelancer Pro
+                </span>
+            </div>
+
+            <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#818cf8;display:block;margin-bottom:0.4rem;">Espace Freelancer</span>
+            <h1 class="premium-title text-white" style="font-size:clamp(1.4rem,2.5vw,1.9rem);line-height:1.2;margin-bottom:0.35rem;">
+                Bonjour,<br>
+                <span style="background:linear-gradient(135deg,#7c3aed,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                    {{ user.first_name|default:user.email }}
+                </span>
+            </h1>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-val">{{ services_count|default:0 }}</span>
+                    <span class="stat-label">Services</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-val" style="color:#818cf8;">{{ missions_count|default:0 }}</span>
+                    <span class="stat-label">Missions</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-val" style="color:#34d399;font-size:1.1rem;">{{ total_revenue|default:0 }} F</span>
+                    <span class="stat-label">Gains</span>
+                </div>
+            </div>
+
+            <div class="left-quick-actions">
+                <a href="{% url 'mes_offres' %}" class="left-action-btn">
+                    <span class="btn-icon" style="background:rgba(99,102,241,0.12);color:#818cf8;"><i class="fas fa-briefcase"></i></span>
+                    Mes Prestations
+                </a>
+                <a href="{% url 'missions' %}" class="left-action-btn">
+                    <span class="btn-icon" style="background:rgba(6,182,212,0.12);color:#06b6d4;"><i class="fas fa-tasks"></i></span>
+                    Trouver des Missions
+                </a>
+                <a href="{% url 'client_offers' %}" class="left-action-btn">
+                    <span class="btn-icon" style="background:rgba(236,72,153,0.12);color:#ec4899;"><i class="fas fa-bullhorn"></i></span>
+                    Offres Clients
+                </a>
+                <a href="{% url 'messages' %}" class="left-action-btn">
+                    <span class="btn-icon" style="background:rgba(6,182,212,0.12);color:#06b6d4;"><i class="fas fa-comment-dots"></i></span>
+                    Messagerie
+                </a>
+                <a href="{% url 'portfolio' %}" class="left-action-btn">
+                    <span class="btn-icon" style="background:rgba(234,179,8,0.1);color:#eab308;"><i class="fas fa-id-card"></i></span>
+                    Mon Portfolio
+                </a>
+                <a href="{% url 'statistiques' %}" class="left-action-btn">
+                    <span class="btn-icon" style="background:rgba(52,211,153,0.1);color:#34d399;"><i class="fas fa-chart-line"></i></span>
+                    Statistiques
+                </a>
+                <a href="{% url 'profile' %}" class="left-action-btn">
+                    <span class="btn-icon" style="background:rgba(255,255,255,0.05);color:white;"><i class="fas fa-user-edit"></i></span>
+                    Profil & Sécurité
+                </a>
+            </div>
+        </aside>
+
+        <!-- CANVAS DROIT -->
+        <main class="bento-canvas" id="right-canvas">
+            
+            <div class="bento-item size-wide" style="background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(99,102,241,0.07));border-color:rgba(124,58,237,0.2);min-height:160px;display:flex;flex-direction:column;justify-content:center;">
+                <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.5rem;">
+                    <div>
+                        <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:0.4rem;">Opportunité</p>
+                        <h3 class="premium-title text-white" style="font-size:1.5rem;margin-bottom:0.4rem;">Découvrez les besoins des clients</h3>
+                        <p style="font-size:0.82rem;color:rgba(255,255,255,0.4);max-width:420px;line-height:1.55;">Les clients publient directement des offres. Parcourez-les et contactez-les directement par messagerie.</p>
+                    </div>
+                    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+                        <a href="{% url 'client_offers' %}" style="display:inline-flex;align-items:center;gap:0.5rem;background:linear-gradient(135deg,#7c3aed,#818cf8);color:white;font-weight:700;font-size:0.85rem;padding:0.75rem 1.5rem;border-radius:0.875rem;text-decoration:none;box-shadow:0 8px 24px rgba(124,58,237,0.3);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+                            <i class="fas fa-search"></i> Voir les offres clients
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offres clients récentes -->
+            <div class="bento-item size-wide">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+                    <h3 class="premium-title text-white" style="font-size:1.1rem;">Besoins clients récents</h3>
+                    <a href="{% url 'client_offers' %}" style="font-size:0.65rem;color:#818cf8;text-decoration:none;font-weight:700;letter-spacing:0.05em;">TOUT VOIR →</a>
+                </div>
+
+                <div class="offers-list">
+                    {% if recent_client_offers %}
+                        {% for offer in recent_client_offers %}
+                            <div class="offer-item">
+                                <div class="offer-header">
+                                    <span style="font-size:0.75rem;text-transform:uppercase;font-weight:700;color:#818cf8;background:rgba(99,102,241,0.1);padding:0.25rem 0.5rem;border-radius:6px;">{{ offer.get_category_display_name }}</span>
+                                    <span style="font-size:0.8rem;color:#34d399;font-weight:700;">
+                                        {% if offer.budget_min and offer.budget_max %}
+                                            {{ offer.budget_min|floatformat:0 }} - {{ offer.budget_max|floatformat:0 }} FCFA
+                                        {% elif offer.budget_max %}
+                                            Jusqu'à {{ offer.budget_max|floatformat:0 }} FCFA
+                                        {% else %}
+                                            Budget non spécifié
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <h4 class="premium-title text-white" style="font-size:1rem;margin:0.25rem 0;">{{ offer.title }}</h4>
+                                <p style="font-size:0.8rem;color:rgba(255,255,255,0.5);line-height:1.4;">{{ offer.description|truncatewords:25 }}</p>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.5rem;flex-wrap:wrap;gap:0.5rem;">
+                                    <span style="font-size:0.7rem;color:rgba(255,255,255,0.3);">Publié par {{ offer.client.first_name|default:offer.client.email }}</span>
+                                    <a href="{% url 'messages' %}?start={{ offer.client.pk }}" style="font-size:0.75rem;color:#818cf8;text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:0.25rem;">
+                                        <i class="far fa-comments"></i> Discuter avec le client
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-bullhorn"></i>
+                            <p>Aucune offre client n'a été publiée pour le moment.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Animations GSAP
+    const tl = gsap.timeline();
+    tl.fromTo('#left-panel',
+        { opacity: 0, x: -40 },
+        { opacity: 1, x: 0, duration: 0.9, ease: 'power4.out' }
+    ).fromTo('.bento-item',
+        { opacity: 0, y: 30, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.65, stagger: 0.06, ease: 'power3.out' },
+        '-=0.6'
+    );
+});
+</script>
+{% endblock %}

@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mes Commandes - SynergyCraft{% endblock %}
+
+{% block content %}
+<style>
+    /* ── VIEWPORT & BACKGROUND GLOBALS ── */
+    .dashboard-viewport {
+        position: relative;
+        min-height: 100vh;
+        background-color: #030305;
+        overflow-x: hidden;
+        font-family: 'Space Grotesk', sans-serif;
+        color: #E8E8F0;
+        padding: 6rem 2rem 4rem;
+    }
+
+    .nebula-bg {
+        position: absolute;
+        inset: 0;
+        background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=1924&q=80');
+        background-size: cover;
+        background-position: center;
+        filter: blur(80px) brightness(0.15);
+        transform: scale(1.1);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .blur-glow {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(140px);
+        opacity: 0.18;
+        pointer-events: none;
+        z-index: 1;
+    }
+    .glow-cyan   { background: #06b6d4; width: 500px; height: 500px; top: -10%; left: -10%; }
+    .glow-purple { background: #7c3aed; width: 600px; height: 600px; bottom: 20%; right: -10%; }
+
+    .premium-title {
+        font-family: 'Clash Display', 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    /* ── CONTENEUR PRINCIPAL ── */
+    .orders-container {
+        position: relative;
+        z-index: 10;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .badge-premium {
+        display: inline-block;
+        padding: 0.35rem 1rem;
+        background: rgba(124,58,237,0.1);
+        border: 1px solid rgba(124,58,237,0.3);
+        color: #a78bfa;
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 1rem;
+    }
+
+    /* ── PANEL GLASSMORPHISM ── */
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border-radius: 1.5rem;
+        padding: 2rem;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+    }
+
+    /* ── CARTES DE COMMANDE ── */
+    .order-card {
+        display: flex;
+        flex-direction: column;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        gap: 1.25rem;
+    }
+
+    @media (min-width: 768px) {
+        .order-card {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+    }
+
+    .order-card:last-child { margin-bottom: 0; }
+
+    .order-card:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(6,182,212,0.3);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .order-img {
+        width: 80px;
+        height: 80px;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .order-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    .order-info h4 {
+        color: white;
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+    }
+
+    .order-meta {
+        color: rgba(255,255,255,0.45);
+        font-size: 0.8rem;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    /* ── BADGES STATUT ── */
+    .status-badge {
+        padding: 0.3rem 0.75rem;
+        border-radius: 100px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .status-pending    { background: rgba(234,179,8,0.1);  color: #facc15; border: 1px solid rgba(234,179,8,0.25); }
+    .status-accepted   { background: rgba(59,130,246,0.1); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+    .status-in_progress{ background: rgba(168,85,247,0.1); color: #c084fc; border: 1px solid rgba(168,85,247,0.25); }
+    .status-delivered  { background: rgba(6,182,212,0.1);  color: #22d3ee; border: 1px solid rgba(6,182,212,0.25); }
+    .status-completed  { background: rgba(34,197,94,0.1);  color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+    .status-cancelled  { background: rgba(239,68,68,0.1);  color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+
+    .order-price {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #06b6d4;
+        white-space: nowrap;
+    }
+
+    /* ── BOUTONS ── */
+    .btn-action {
+        padding: 0.55rem 1.1rem;
+        border-radius: 0.75rem;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: white;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .btn-action:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.2);
+        color: white;
+    }
+
+    .btn-contact {
+        background: linear-gradient(135deg, rgba(124,58,237,0.4), rgba(6,182,212,0.4));
+        border-color: rgba(124,58,237,0.5);
+    }
+
+    .btn-contact:hover {
+        background: linear-gradient(135deg, rgba(124,58,237,0.6), rgba(6,182,212,0.6));
+    }
+
+    /* ── ÉTAT VIDE ── */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 1rem;
+    }
+
+    .empty-icon {
+        font-size: 3.5rem;
+        color: rgba(255,255,255,0.07);
+        margin-bottom: 1.25rem;
+    }
+
+    .btn-discover {
+        background: linear-gradient(135deg, #7c3aed, #06b6d4);
+        color: white;
+        padding: 0.8rem 2rem;
+        border-radius: 0.875rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: transform 0.2s, opacity 0.2s;
+        margin-top: 1.5rem;
+    }
+
+    .btn-discover:hover {
+        opacity: 0.85;
+        transform: translateY(-2px);
+        color: white;
+    }
+</style>
+
+<div class="dashboard-viewport">
+    <div class="nebula-bg"></div>
+    <div class="blur-glow glow-cyan"></div>
+    <div class="blur-glow glow-purple"></div>
+
+    <div class="orders-container">
+
+        <div class="page-header" id="header-anim">
+            <span class="badge-premium">Espace Client</span>
+            <h1 class="premium-title" style="font-size:2.2rem; color:white; margin:0.5rem 0;">Historique des Commandes</h1>
+            <p style="color:rgba(255,255,255,0.4); font-size:0.95rem;">Suivez l'avancement de vos projets et collaborez avec vos prestataires.</p>
+        </div>
+
+        <div class="glass-panel" id="panel-anim">
+
+            {% if orders %}
+                {% for order in orders %}
+                <div class="order-card order-item-anim">
+
+                    <!-- Image du service -->
+                    <div class="order-img">
+                        {% if order.service and order.service.image %}
+                            <img src="{{ order.service.image.url }}" alt="{{ order.service.title }}">
+                        {% else %}
+                            <i class="fas fa-image" style="font-size:1.5rem; color:rgba(255,255,255,0.15);"></i>
+                        {% endif %}
+                    </div>
+
+                    <!-- Détails commande -->
+                    <div class="order-info" style="flex:1;">
+                        <h4>{{ order.service.title|default:"Service inconnu" }}</h4>
+                        <div class="order-meta">
+                            <span><i class="far fa-calendar-alt"></i> {{ order.created_at|date:"d/m/Y" }}</span>
+                            <span>·</span>
+                            <span>Commande #{{ order.pk }}</span>
+                            {% if order.freelancer %}
+                            <span>·</span>
+                            <span><i class="fas fa-user"></i> {{ order.freelancer.first_name|default:order.freelancer.email }}</span>
+                            {% endif %}
+                        </div>
+                        <div style="margin-top:0.6rem;">
+                            <span class="status-badge status-{{ order.status }}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Prix -->
+                    <div class="order-price">
+                        {{ order.price|floatformat:0 }} FCFA
+                    </div>
+
+                    <!-- Actions -->
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        {% if order.freelancer %}
+                            <a href="{% url 'messages' %}?start={{ order.freelancer.pk }}" class="btn-action btn-contact">
+                                <i class="far fa-comments"></i> Contacter
+                            </a>
+                        {% endif %}
+                        {% if order.attachment %}
+                            <a href="{{ order.attachment.url }}" class="btn-action" target="_blank">
+                                <i class="fas fa-download"></i> Livrable
+                            </a>
+                        {% endif %}
+                    </div>
+
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state order-item-anim">
+                    <div class="empty-icon">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <h3 style="font-size:1.3rem; color:white; font-weight:700; margin-bottom:0.5rem;">Aucune commande pour le moment</h3>
+                    <p style="color:rgba(255,255,255,0.35); font-size:0.95rem;">Vous n'avez pas encore passé de commande sur notre plateforme.</p>
+                    <a href="{% url 'catalogue' %}" class="btn-discover">
+                        <i class="fas fa-store"></i> Découvrir les services
+                    </a>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tl = gsap.timeline();
+        tl.fromTo("#header-anim",
+            { opacity: 0, y: -20 },
+            { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }
+        );
+        tl.fromTo("#panel-anim",
+            { opacity: 0, scale: 0.98 },
+            { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" },
+            "-=0.4"
+        );
+        tl.fromTo(".order-item-anim",
+            { opacity: 0, x: -20 },
+            { opacity: 1, x: 0, duration: 0.5, stagger: 0.1, ease: "power2.out" },
+            "-=0.2"
+        );
+    });
+</script>
+{% endblock %}

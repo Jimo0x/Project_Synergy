@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Paiement PayPal - SynergyCraft{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center px-4">
+  <div class="max-w-md w-full bg-white/10 backdrop-blur-xl rounded-2xl p-8 text-center border border-white/10">
+    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-500/20 flex items-center justify-center">
+      <i class="fab fa-paypal text-3xl text-indigo-400"></i>
+    </div>
+    <h1 class="text-2xl font-bold text-white mb-2">Paiement PayPal en cours</h1>
+    <p class="text-gray-300 mb-6">Merci d'avoir approuvé le paiement. Nous finalisons votre transaction...</p>
+    <div class="flex justify-center mb-4">
+      <i class="fas fa-spinner fa-spin text-3xl text-indigo-400"></i>
+    </div>
+    <p class="text-gray-500 text-sm">Vous allez être redirigé automatiquement.</p>
+  </div>
+</div>
+
+<script>
+(async function() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  const PayerID = params.get('PayerID');
+
+  if (!token) {
+    document.querySelector('p.text-gray-300').textContent = 'Token manquant. Veuillez contacter le support.';
+    return;
+  }
+
+  try {
+    const resp = await fetch('/api/payments/paypal/capture/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+      },
+      body: JSON.stringify({ paypal_order_id: token }),
+    });
+    const data = await resp.json();
+    if (data.status === 'COMPLETED' || data.detail) {
+      window.location.href = '/commandes/?success=paypal';
+    } else {
+      document.querySelector('p.text-gray-300').textContent = 'Erreur lors de la capture. Contactez le support.';
+    }
+  } catch (err) {
+    document.querySelector('p.text-gray-300').textContent = 'Erreur réseau. Contactez le support.';
+  }
+})();
+</script>
+{% csrf_token %}
+{% endblock %}

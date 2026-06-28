@@ -1,0 +1,805 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* ── CONFIGURATION & VIEWPORT GLOBALS ── */
+    .dashboard-viewport {
+        position: relative;
+        height: auto;
+        background-color: transparent;
+        overflow: visible;
+        font-family: 'Space Grotesk', sans-serif;
+        color: #E8E8F0;
+        padding: 2rem;
+    }
+
+    .nebula-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=1924&q=80');
+        background-size: cover;
+        background-position: center;
+        filter: blur(80px) brightness(0.15);
+        transform: scale(1.1);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .blur-glow {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(140px);
+        opacity: 0.18;
+        pointer-events: none;
+        z-index: 1;
+    }
+    .glow-cyan   { background: #06b6d4; width: 500px; height: 500px; top: -10%; left: 30%; }
+    .glow-purple { background: #7c3aed; width: 600px; height: 600px; bottom: -10%; right: 10%; }
+
+    /* ── TOPBAR ── */
+    .topbar {
+        position: relative;
+        z-index: 20;
+        max-width: 1600px;
+        margin: 0 auto 1.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+    }
+
+    .topbar-search {
+        flex: 1;
+        position: relative;
+    }
+
+    .topbar-search i {
+        position: absolute;
+        left: 1.1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255,255,255,0.3);
+        font-size: 0.85rem;
+        pointer-events: none;
+    }
+
+    .topbar-search input {
+        width: 100%;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 0.875rem;
+        padding: 0.75rem 1rem 0.75rem 2.75rem;
+        color: white;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.875rem;
+        outline: none;
+        transition: border-color 0.2s, background 0.2s;
+    }
+
+    .topbar-search input::placeholder { color: rgba(255,255,255,0.25); }
+    .topbar-search input:focus {
+        border-color: rgba(6,182,212,0.4);
+        background: rgba(255,255,255,0.05);
+    }
+
+    .topbar-icon-btn {
+        position: relative;
+        width: 44px;
+        height: 44px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 0.875rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255,255,255,0.5);
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+
+    .topbar-icon-btn:hover {
+        border-color: rgba(6,182,212,0.3);
+        color: white;
+        background: rgba(255,255,255,0.05);
+    }
+
+    .topbar-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        width: 16px;
+        height: 16px;
+        background: #f43f5e;
+        border-radius: 50%;
+        font-size: 0.5rem;
+        font-weight: 700;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #030305;
+    }
+
+    /* Notification dropdown */
+    .notif-dropdown-wrap { position: relative; }
+
+    .notif-dropdown {
+        position: absolute;
+        top: calc(100% + 0.75rem);
+        right: 0;
+        width: 320px;
+        background: rgba(12,12,18,0.95);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 1.25rem;
+        backdrop-filter: blur(30px);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+        z-index: 100;
+        display: none;
+        padding: 1.25rem;
+    }
+
+    .notif-dropdown.open { display: block; }
+
+    .notif-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .notif-item:last-child { border-bottom: none; }
+
+    .notif-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-top: 0.25rem;
+        flex-shrink: 0;
+    }
+
+    .notif-text { font-size: 0.78rem; color: rgba(255,255,255,0.65); line-height: 1.45; }
+    .notif-text strong { color: white; }
+    .notif-time { font-size: 0.65rem; color: rgba(255,255,255,0.25); margin-top: 0.2rem; }
+
+    /* ── LAYOUT PRINCIPAL ── */
+    .workspace-layout {
+        position: relative;
+        z-index: 10;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    @media (min-width: 1024px) {
+        .workspace-layout { grid-template-columns: 360px 1fr; align-items: start; }
+    }
+
+    /* ── PANNEAU GAUCHE ── */
+    .holo-welcome-panel {
+        background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+        border: 1px solid rgba(255,255,255,0.07);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border-radius: 2.5rem;
+        padding: 2.5rem 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+    }
+
+    /* Avatar, Caméra & Bague de progression */
+    .avatar-progress-container { 
+        position: relative; 
+        width: 130px; 
+        height: 130px; 
+        margin: 0 auto 1.75rem; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        cursor: pointer;
+    }
+    .progress-ring-svg { 
+        position: absolute; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        transform: rotate(-90deg); 
+    }
+    .progress-ring-circle { 
+        fill: transparent; 
+        stroke-width: 4; 
+        stroke-linecap: round; 
+        transition: stroke-dashoffset 0.8s ease; 
+    }
+    
+    .avatar-portal { 
+        position: absolute; 
+        inset: 8px; 
+        border-radius: 50%; 
+        background: #07070c; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        overflow: hidden; 
+        border: 1px solid rgba(255,255,255,0.08); 
+        width: calc(100% - 16px);
+        height: calc(100% - 16px);
+    }
+    .avatar-portal img { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover; 
+    }
+    .avatar-overlay-cam {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        color: white;
+        font-size: 1.5rem;
+        border-radius: 50%;
+    }
+    .avatar-progress-container:hover .avatar-overlay-cam { opacity: 1; }
+
+    /* Badge de vérification */
+    .status-level-badge { 
+        display: inline-block; 
+        padding: 0.35rem 0.85rem; 
+        border-radius: 100px; 
+        font-size: 0.65rem; 
+        font-weight: 700; 
+        text-transform: uppercase; 
+        letter-spacing: 0.05em; 
+        margin-top: 0.5rem;
+    }
+    .lvl-unverified { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
+    .lvl-intermediate { background: rgba(6,182,214,0.1); border: 1px solid rgba(6,182,214,0.2); color: #06b6d4; }
+    .lvl-verified { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); color: #22c55e; box-shadow: 0 0 15px rgba(34,197,94,0.15); }
+
+    /* Stats 3 colonnes */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        margin-top: 1.75rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .stat-item { text-align: center; padding: 0.5rem; }
+    .stat-item + .stat-item { border-left: 1px solid rgba(255,255,255,0.05); }
+
+    .stat-val {
+        display: block;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: white;
+        line-height: 1;
+        margin-bottom: 0.3rem;
+    }
+
+    .stat-label {
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(255,255,255,0.3);
+    }
+
+    /* Actions rapides gauche */
+    .left-quick-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .left-action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.7rem 0.875rem;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 0.875rem;
+        color: rgba(255,255,255,0.55);
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .left-action-btn:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.1);
+        color: white;
+        transform: translateX(4px);
+    }
+
+    .left-action-btn .btn-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    /* ── BENTO GRID DROITE ── */
+    .bento-canvas {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 1.25rem;
+    }
+
+    .bento-item {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 1.75rem;
+        padding: 1.75rem;
+        position: relative;
+        overflow: hidden;
+        transition: border-color 0.3s ease;
+    }
+
+    .bento-item:hover { border-color: rgba(6,182,214,0.2); }
+
+    .size-wide   { grid-column: span 6; }
+    .size-ml     { grid-column: span 6; }
+    .size-mr     { grid-column: span 6; }
+    .size-sm     { grid-column: span 6; }
+
+    @media (min-width: 768px) {
+        .size-ml { grid-column: span 4; }
+        .size-mr { grid-column: span 2; }
+        .size-sm { grid-column: span 3; }
+    }
+
+    @media (min-width: 1280px) {
+        .size-wide { grid-column: span 6; }
+        .size-ml   { grid-column: span 4; }
+        .size-mr   { grid-column: span 2; }
+        .size-sm   { grid-column: span 3; }
+    }
+
+    .premium-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+
+    .bento-icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 0.875rem;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        margin-bottom: 1.25rem;
+    }
+
+    /* ── STATUS BADGES (Pour les commandes) ── */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 0.25rem 0.65rem;
+        border-radius: 100px;
+        white-space: nowrap;
+    }
+    .status-badge::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .s-new      { background: rgba(139,92,246,0.12); color: #a78bfa; }
+    .s-new::before { background: #a78bfa; box-shadow: 0 0 6px #a78bfa; }
+
+    .s-progress { background: rgba(6,182,212,0.12); color: #06b6d4; }
+    .s-progress::before { background: #06b6d4; box-shadow: 0 0 6px #06b6d4; animation: pulse 1.5s infinite; }
+
+    .s-review   { background: rgba(251,146,60,0.12); color: #fb923c; }
+    .s-review::before { background: #fb923c; box-shadow: 0 0 6px #fb923c; }
+
+    .s-done     { background: rgba(34,197,94,0.12); color: #22c55e; }
+    .s-done::before { background: #22c55e; }
+
+    .s-cancel   { background: rgba(239,68,68,0.1); color: #ef4444; }
+    .s-cancel::before { background: #ef4444; }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        color: rgba(255,255,255,0.25);
+    }
+    .empty-state i { font-size: 1.5rem; margin-bottom: 0.75rem; display: block; }
+    .empty-state p { font-size: 0.8rem; line-height: 1.5; }
+    .empty-state a { color: #06B6D4; font-weight: 600; font-size: 0.78rem; margin-top: 0.625rem; display: inline-block; text-decoration: none; }
+
+    /* Services recommandés en bas */
+    .services-container { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
+        gap: 1.25rem; 
+        width: 100%; 
+        margin-top: 0.5rem; 
+    }
+    .service-card { 
+        background: rgba(255,255,255,0.01); 
+        border: 1px solid rgba(255,255,255,0.04); 
+        border-radius: 1.25rem; 
+        padding: 1.25rem; 
+        display: flex; 
+        align-items: center; 
+        gap: 1.25rem; 
+        text-decoration: none; 
+        transition: all 0.3s ease; 
+    }
+    .service-card:hover { 
+        background: rgba(124,58,237,0.04); 
+        border-color: rgba(124,58,237,0.2); 
+        transform: translateY(-2px); 
+    }
+    .service-icon-box { 
+        width: 50px; 
+        height: 50px; 
+        border-radius: 1rem; 
+        background: rgba(255,255,255,0.03); 
+        border: 1px solid rgba(255,255,255,0.06); 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-size: 1.25rem; 
+        flex-shrink: 0; 
+    }
+
+    @keyframes spin  { 100% { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.15); } }
+</style>
+
+<div class="dashboard-viewport">
+    <div class="nebula-bg"></div>
+    <div class="blur-glow glow-cyan"></div>
+    <div class="blur-glow glow-purple"></div>
+
+    {% if messages %}
+    <div class="relative z-20 max-w-1600px mx-auto mb-4" style="max-width:1600px;">
+        {% for message in messages %}
+        <div class="px-5 py-3 rounded-xl text-sm {% if message.tags == 'error' %}bg-red-500/10 border border-red-500/20 text-red-400{% elif message.tags == 'success' %}bg-green-500/10 border border-green-500/20 text-green-400{% else %}bg-blue-500/10 border border-blue-500/20 text-blue-400{% endif %}">
+            <i class="fas {% if message.tags == 'error' %}fa-exclamation-triangle{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} mr-2"></i> {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="topbar">
+        <div class="topbar-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Rechercher un service, un freelancer…"
+                   onkeydown="if(event.key==='Enter'&&this.value.trim())window.location='/services/catalogue/?q='+encodeURIComponent(this.value.trim())">
+        </div>
+
+        <div class="notif-dropdown-wrap">
+            <button class="topbar-icon-btn" id="notifToggle" title="Notifications">
+                <i class="fas fa-bell"></i>
+                {% if notifications_count %}<span class="topbar-badge">{{ notifications_count }}</span>{% endif %}
+            </button>
+            <div class="notif-dropdown" id="notifDropdown">
+                <p style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:0.875rem;">
+                    Notifications récentes
+                </p>
+                {% if recent_notifications %}
+                    {% for notif in recent_notifications %}
+                    <div class="notif-item">
+                        <div class="notif-dot" style="background:{% if notif.type == 'message' %}#06b6d4{% elif notif.type == 'order' %}#a78bfa{% else %}#22c55e{% endif %};"></div>
+                        <div>
+                            <div class="notif-text">{{ notif.message }}</div>
+                            <div class="notif-time">{{ notif.created_at|timesince }} ago</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="notif-item">
+                        <div class="notif-dot" style="background:#a78bfa;"></div>
+                        <div>
+                            <div class="notif-text"><strong>Bienvenue sur SynergyCraft</strong> — votre espace client est prêt.</div>
+                            <div class="notif-time">À l'instant</div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <a href="{% url 'messages' %}" class="topbar-icon-btn" title="Messages">
+            <i class="fas fa-comment-dots"></i>
+            {% if unread_messages %}<span class="topbar-badge">{{ unread_messages }}</span>{% endif %}
+        </a>
+        <a href="{% url 'panier' %}" class="topbar-icon-btn" title="Panier">
+            <i class="fas fa-shopping-cart"></i>
+            {% if cart_count %}<span class="topbar-badge">{{ cart_count }}</span>{% endif %}
+        </a>
+    </div>
+
+    <div class="workspace-layout">
+
+        <aside class="holo-welcome-panel" id="left-panel">
+            <div class="avatar-progress-container">
+                <svg class="progress-ring-svg" width="130" height="130" viewBox="0 0 130 130" aria-hidden="true">
+                    <circle class="progress-ring-circle" cx="65" cy="65" r="61" stroke="rgba(255,255,255,0.05)"></circle>
+                    <circle id="progressCircle" class="progress-ring-circle" cx="65" cy="65" r="61" stroke="#06b6d4" stroke-dasharray="383.27" stroke-dashoffset="191.6"></circle>
+                </svg>
+
+                <label for="avatarUpload" class="avatar-portal" id="avatarPortal">
+                    {% if user.client_profile.avatar %}
+                        <img src="{{ user.client_profile.avatar.url }}" alt="Photo de profil" id="avatarImg">
+                    {% else %}
+                        <span id="avatarInitials" style="font-size: 1.8rem; font-weight: 700;">{{ user.first_name|first|upper|default:"?" }}{{ user.last_name|first|upper }}</span>
+                    {% endif %}
+                    <div class="avatar-overlay-cam"><i class="fas fa-camera"></i></div>
+                </label>
+                <input type="file" id="avatarUpload" accept="image/*" style="display:none;">
+            </div>
+
+            <div style="margin-bottom: 1.2rem;">
+                <span class="status-level-badge lvl-intermediate" id="levelBadge">
+                    Niveau : 
+                    {% if user.client_profile.is_verified %}Vérifié
+                    {% elif user.client_profile.is_intermediate %}Intermédiaire
+                    {% else %}Non vérifié{% endif %}
+                </span>
+                
+            </div>
+
+            <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#06b6d4;display:block;margin-bottom:0.4rem;">Espace Client</span>
+            <h1 class="premium-title text-white" style="font-size:clamp(1.4rem,2.5vw,1.9rem);line-height:1.2;margin-bottom:0.35rem;">
+                Bonjour,<br>
+                <span style="background:linear-gradient(135deg,#7c3aed,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                    {{ user.first_name|default:user.email }}
+                </span>
+            </h1>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-val count-metric" data-val="{{ total_orders|default:0 }}">0</span>
+                    <span class="stat-label">Commandes</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-val count-metric" style="color:#06b6d4;" data-val="{{ active_orders|default:0 }}">0</span>
+                    <span class="stat-label">En cours</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-val count-metric" style="color:#a78bfa;font-size:1.1rem;" data-val="{{ total_spent|default:0 }}">0</span>
+                    <span class="stat-label">FCFA dép.</span>
+                </div>
+            </div>
+
+            <div class="left-quick-actions">
+                <a href="{% url 'catalogue' %}" class="left-action-btn">
+                    <span class="btn-icon" style="background:rgba(6,182,212,0.12);color:#06b6d4;"><i class="fas fa-store"></i></span>
+                    Catalogue de services
+                </a>
+                <a href="{% url 'commandes' %}" class="left-action-btn">
+                    <span class="btn-icon" style="background:rgba(124,58,237,0.12);color:#a78bfa;"><i class="fas fa-box"></i></span>
+                    Mes commandes
+                </a>
+                <a href="{% url 'messages' %}" class="left-action-btn">
+                    <span class="btn-icon" style="background:rgba(236,72,153,0.12);color:#ec4899;"><i class="fas fa-comment-dots"></i></span>
+                    Messagerie
+                </a>
+                <a href="{% url 'profile' %}" class="left-action-btn">
+                    <span class="btn-icon" style="background:rgba(234,179,8,0.1);color:#eab308;"><i class="fas fa-user-edit"></i></span>
+                    Mon profil & sécurité
+                </a>
+                <a href="{% url 'support' %}" class="left-action-btn">
+                    <span class="btn-icon" style="background:rgba(244,63,94,0.1);color:#f43f5e;"><i class="fas fa-headset"></i></span>
+                    Support
+                </a>
+            </div>
+        </aside>
+
+        <main class="bento-canvas" id="right-canvas">
+            
+            <div class="bento-item size-wide" style="background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(6,182,212,0.07));border-color:rgba(124,58,237,0.2);min-height:160px;display:flex;flex-direction:column;justify-content:center;">
+                <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.5rem;">
+                    <div>
+                        <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:0.4rem;">Action rapide</p>
+                        <h3 class="premium-title text-white" style="font-size:1.5rem;margin-bottom:0.4rem;">Vous avez un projet en tête ?</h3>
+                        <p style="font-size:0.82rem;color:rgba(255,255,255,0.4);max-width:420px;line-height:1.55;">Décrivez votre besoin et recevez des devis de freelancers vérifiés sous 24h. Gratuit et sans engagement.</p>
+                    </div>
+                    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+                        <a href="{% url 'quote' %}" style="display:inline-flex;align-items:center;gap:0.5rem;background:linear-gradient(135deg,#7c3aed,#06b6d4);color:white;font-weight:700;font-size:0.85rem;padding:0.75rem 1.5rem;border-radius:0.875rem;text-decoration:none;box-shadow:0 8px 24px rgba(124,58,237,0.3);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+                            <i class="fas fa-plus"></i> Nouveau projet
+                        </a>
+                        <a href="{% url 'catalogue' %}" style="display:inline-flex;align-items:center;gap:0.5rem;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);font-weight:600;font-size:0.85rem;padding:0.75rem 1.5rem;border-radius:0.875rem;text-decoration:none;border:1px solid rgba(255,255,255,0.1);transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)';this.style.color='white'" onmouseout="this.style.background='rgba(255,255,255,0.05)';this.style.color='rgba(255,255,255,0.7)'">
+                            <i class="fas fa-store"></i> Explorer les services
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bento-item size-wide" style="grid-row:span 2;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+                    <h3 class="premium-title text-white" style="font-size:1.1rem;">Vos commandes actives</h3>
+                    <a href="{% url 'commandes' %}" style="font-size:0.65rem;color:#06b6d4;text-decoration:none;font-weight:700;letter-spacing:0.05em;">HISTORIQUE COMPLET →</a>
+                </div>
+                
+                {% if recent_orders %}
+                    <div style="display:flex;flex-direction:column;gap:0.85rem;">
+                        {% for order in recent_orders %}
+                        <div style="padding:1rem;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:1rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(6,182,212,0.15)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.04)'">
+                            <div style="min-width:0;flex:1;">
+                                <div style="font-size:0.88rem;font-weight:700;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:0.25rem;">{{ order.service.title }}</div>
+                                <div style="font-size:0.65rem;color:rgba(255,255,255,0.35);">Créée le {{ order.created_at|date:"d M Y" }}</div>
+                            </div>
+                            <span class="status-badge 
+                                {% if order.status == 'pending' %}s-new 
+                                {% elif order.status == 'accepted' or order.status == 'in_progress' %}s-progress 
+                                {% elif order.status == 'delivered' %}s-review 
+                                {% elif order.status == 'completed' %}s-done 
+                                {% else %}s-cancel {% endif %}">
+                                {% if order.status == 'pending' %}Nouveau
+                                {% elif order.status == 'accepted' or order.status == 'in_progress' %}En cours
+                                {% elif order.status == 'delivered' %}En révision
+                                {% elif order.status == 'completed' %}Terminé
+                                {% else %}Annulé{% endif %}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-layer-group"></i>
+                        <p>Aucune exécution de projet ou commande en cours.</p>
+                        <a href="{% url 'catalogue' %}">Passer ma première commande →</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="bento-item size-wide" style="background: rgba(0, 0, 0, 0.15);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                    <div>
+                        <h3 class="premium-title text-white" style="font-size: 1.1rem;">Explorer les expertises</h3>
+                        <p style="font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 0.2rem;">Commandez des prestations configurées auprès de créateurs qualifiés.</p>
+                    </div>
+                    <a href="{% url 'catalogue' %}" style="font-size: 0.65rem; color: #7c3aed; text-decoration: none; font-weight: 700; letter-spacing: 0.05em;">PARCOURIR LE CATALOGUE →</a>
+                </div>
+
+                <div class="services-container">
+                    <a href="#" class="service-card">
+                        <div class="service-icon-box" style="color: #06b6d4;"><i class="fas fa-bezier-curve"></i></div>
+                        <div>
+                            <h4 style="font-size: 0.85rem; font-weight: 700; color: white; margin-bottom: 0.15rem;">Identité Visuelle & UI/UX</h4>
+                            <p style="font-size: 0.72rem; color: rgba(255,255,255,0.4);">À partir de 45 000 FCFA</p>
+                        </div>
+                    </a>
+                    <a href="#" class="service-card">
+                        <div class="service-icon-box" style="color: #a78bfa;"><i class="fas fa-layer-group"></i></div>
+                        <div>
+                            <h4 style="font-size: 0.85rem; font-weight: 700; color: white; margin-bottom: 0.15rem;">Architectures Web & API</h4>
+                            <p style="font-size: 0.72rem; color: rgba(255,255,255,0.4);">Solutions Django & Node.js</p>
+                        </div>
+                    </a>
+                    <a href="#" class="service-card">
+                        <div class="service-icon-box" style="color: #fb923c;"><i class="fas fa-mobile-alt"></i></div>
+                        <div>
+                            <h4 style="font-size: 0.85rem; font-weight: 700; color: white; margin-bottom: 0.15rem;">Applications Multiplateformes</h4>
+                            <p style="font-size: 0.72rem; color: rgba(255,255,255,0.4);">Développement applicatif Flutter</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // ── ANIMATIONS GSAP ──────────────────────────────────────────────────────
+    const tl = gsap.timeline();
+
+    tl.fromTo('#left-panel',
+        { opacity: 0, x: -40 },
+        { opacity: 1, x: 0, duration: 0.9, ease: 'power4.out' }
+    ).fromTo('.bento-item',
+        { opacity: 0, y: 30, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.65, stagger: 0.06, ease: 'power3.out' },
+        '-=0.6'
+    );
+
+    // Compteurs animés
+    document.querySelectorAll('.count-metric').forEach(el => {
+        const target = parseInt(el.dataset.val) || 0;
+        if (target === 0) return;
+        const obj = { val: 0 };
+        gsap.to(obj, {
+            val: target, duration: 1.8, ease: 'power4.out',
+            onUpdate: () => { el.textContent = Math.ceil(obj.val); }
+        });
+    });
+
+    // Parallax 3D sur le panneau gauche
+    const leftPanel = document.getElementById('left-panel');
+    if (leftPanel) {
+        document.addEventListener('mousemove', (e) => {
+            if (window.innerWidth < 1024) return;
+            const x = (window.innerWidth / 2 - e.clientX) / 70;
+            const y = (window.innerHeight / 2 - e.clientY) / 70;
+            gsap.to(leftPanel, { rotateY: -x * 0.35, rotateX: y * 0.35, duration: 0.6, overwrite: 'auto' });
+        });
+        document.addEventListener('mouseleave', () => {
+            gsap.to(leftPanel, { rotateX: 0, rotateY: 0, duration: 0.8 });
+        });
+    }
+
+    // ── DROPDOWN NOTIFICATIONS ───────────────────────────────────────────────
+    const notifBtn = document.getElementById('notifToggle');
+    const notifDrop = document.getElementById('notifDropdown');
+
+    if (notifBtn && notifDrop) {
+        notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifDrop.classList.toggle('open');
+        });
+        document.addEventListener('click', () => notifDrop.classList.remove('open'));
+    }
+
+    // ── PREVIEW LOCALE DE L'AVATAR ──────────────────────────────
+    const avatarInput = document.getElementById('avatarUpload');
+    const avatarPortal = document.getElementById('avatarPortal');
+    const avatarInitials = document.getElementById('avatarInitials');
+
+    if (avatarInput && avatarPortal) {
+        avatarInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (avatarInitials) avatarInitials.style.display = 'none';
+
+                let img = avatarPortal.querySelector('img');
+                if (!img) {
+                    img = document.createElement('img');
+                    img.id = 'avatarImg';
+                    img.alt = 'Photo de profil';
+                    avatarPortal.insertBefore(img, avatarPortal.firstChild);
+                }
+
+                img.src = e.target.result;
+                img.style.display = 'block';
+
+                if (typeof gsap !== 'undefined') {
+                    gsap.fromTo(avatarPortal, { scale: 0.9 }, { scale: 1, duration: 0.4, ease: 'back.out(1.7)' });
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+});
+</script>
+{% endblock %}
