@@ -19,13 +19,33 @@ export default function SettingsPage() {
       return
     }
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user?.email) {
+      setError('Session introuvable, reconnecte-toi.')
+      return
+    }
+
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: password.current,
+    })
+    if (verifyError) {
+      setError('Mot de passe actuel incorrect.')
+      return
+    }
+
     const { error: updateError } = await supabase.auth.updateUser({ password: password.new })
     if (updateError) {
-      setError(updateError.message)
-    } else {
-      setSuccess('Mot de passe mis à jour')
-      setPassword({ current: '', new: '', confirm: '' })
+      if (updateError.message.toLowerCase().includes('same as the old')) {
+        setError('Le nouveau mot de passe doit être différent de l\'ancien.')
+      } else {
+        setError('Impossible de mettre à jour le mot de passe. Réessaie.')
+      }
+      return
     }
+
+    setSuccess('Mot de passe mis à jour')
+    setPassword({ current: '', new: '', confirm: '' })
   }
 
   return (
@@ -39,6 +59,13 @@ export default function SettingsPage() {
           <form onSubmit={handleUpdatePassword} className="space-y-4">
             {error && <div className="p-3 rounded-lg text-sm text-red-400 bg-red-500/10">{error}</div>}
             {success && <div className="p-3 rounded-lg text-sm text-green-400 bg-green-500/10">{success}</div>}
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Mot de passe actuel</label>
+              <input type="password" required value={password.current}
+                     onChange={(e) => setPassword({ ...password, current: e.target.value })}
+                     className="w-full px-4 py-3 rounded-xl text-white text-sm"
+                     style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)' }} />
+            </div>
             <div>
               <label className="block text-sm text-gray-400 mb-2">Nouveau mot de passe</label>
               <input type="password" required minLength={6} value={password.new}

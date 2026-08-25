@@ -18,11 +18,11 @@ export default async function FreelanceDashboardPage() {
     .from('orders_order')
     .select('*', { count: 'exact', head: true })
     .eq('freelancer_id', user.id)
-    .in('status', ['accepted', 'in_progress'])
+    .in('status', ['paid', 'accepted', 'in_progress'])
 
   const { data: recentOrders } = await supabase
     .from('orders_order')
-    .select('id, service_id, status, price, created_at')
+    .select('id, service_id, status, price, created_at, service:service_id(title)')
     .eq('freelancer_id', user.id)
     .order('created_at', { ascending: false })
     .limit(5)

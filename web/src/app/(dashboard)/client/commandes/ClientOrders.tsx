@@ -14,6 +14,7 @@ interface OrderWithService {
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   pending: { label: 'En attente', color: '#F59E0B' },
+  paid: { label: 'Payée', color: '#10B981' },
   accepted: { label: 'Acceptée', color: '#8B5CF6' },
   in_progress: { label: 'En cours', color: '#06B6D4' },
   delivered: { label: 'Livrée', color: '#10B981' },

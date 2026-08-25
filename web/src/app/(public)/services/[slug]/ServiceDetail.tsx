@@ -1,8 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { useRouter } from 'next/navigation'
+import { createOrder } from '@/app/actions/orders'
 
 interface Service {
   id: number
@@ -20,7 +22,6 @@ interface Creator {
   id: string
   first_name: string
   last_name: string
-  email: string
 }
 
 const categoryNames: Record<string, string> = {
@@ -36,33 +37,27 @@ const categoryNames: Record<string, string> = {
 
 export function ServiceDetail({ service, creator }: { service: Service; creator: Creator | null }) {
   const router = useRouter()
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleOrder = async () => {
+    setError(null)
+    setSubmitting(true)
+
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-
     if (!user) {
       router.push('/login')
       return
     }
 
-    const { data: order, error } = await supabase
-      .from('orders_order')
-      .insert({
-        service_id: service.id,
-        client_id: user.id,
-        price: service.price,
-        status: 'pending',
-      } as any)
-      .select()
-      .single() as unknown as { data: any; error: any }
+    const result = await createOrder({ serviceId: service.id })
 
-    if (error) {
-      alert('Erreur lors de la commande')
+    if (!result.ok) {
+      setError(result.message)
+      setSubmitting(false)
       return
     }
-
-    router.push('/panier')
   }
 
   return (
@@ -108,18 +103,31 @@ export function ServiceDetail({ service, creator }: { service: Service; creator:
                 {service.price.toLocaleString('fr-FR')} FCFA
               </p>
 
-              <button onClick={handleOrder}
-                      className="btn-glow btn-glow-primary w-full py-3 mb-4">
-                <i className="fas fa-shopping-cart mr-2"></i>
-                Commander
+              <button onClick={handleOrder} disabled={submitting}
+                      className="btn-glow btn-glow-primary w-full py-3 mb-4 disabled:opacity-60">
+                {submitting ? (
+                  <>
+                    <i className="fas fa-circle-notch fa-spin mr-2"></i>
+                    Commande en cours...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-shopping-cart mr-2"></i>
+                    Commander
+                  </>
+                )}
               </button>
+
+              {error && (
+                <p className="text-sm text-red-400 bg-red-500/10 rounded-lg p-3 mb-4">{error}</p>
+              )}
 
               {creator && (
                 <div className="mt-6 pt-6 border-t border-white/5">
                   <p className="text-xs text-gray-500 mb-3">Proposé par</p>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm">
-                      {(creator.first_name?.[0] || creator.email[0]).toUpperCase()}
+                      {(creator.first_name?.[0] || creator.last_name?.[0] || '?').toUpperCase()}
                     </div>
                     <div>
                       <p className="text-sm font-medium">{creator.first_name} {creator.last_name}</p>

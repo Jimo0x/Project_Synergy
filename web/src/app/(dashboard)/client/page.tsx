@@ -18,7 +18,7 @@ export default async function ClientDashboardPage() {
     .from('orders_order')
     .select('*', { count: 'exact', head: true })
     .eq('client_id', user.id)
-    .in('status', ['pending', 'accepted', 'in_progress'])
+    .in('status', ['pending', 'paid', 'accepted', 'in_progress'])
 
   const { data: activeOrders } = await supabase
     .from('orders_order')

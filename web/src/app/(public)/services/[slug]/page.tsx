@@ -12,17 +12,17 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
     .from('services_service')
     .select('*, created_by_id')
     .eq('slug', slug)
-    .single() as unknown as { data: any | null }
+    .single() as unknown as { data: Parameters<typeof ServiceDetail>[0]['service'] | null }
 
   if (!service) notFound()
 
-  let creator = null
+  let creator: Parameters<typeof ServiceDetail>[0]['creator'] = null
   if (service.created_by_id) {
     const { data: user } = await supabase
-      .from('accounts_user')
-      .select('id, first_name, last_name, email')
+      .from('public_profiles')
+      .select('id, first_name, last_name, role')
       .eq('id', service.created_by_id)
-      .single() as unknown as { data: { id: string; first_name: string; last_name: string; email: string } | null }
+      .single() as unknown as { data: { id: string; first_name: string; last_name: string; role: string } | null }
     creator = user
   }
 

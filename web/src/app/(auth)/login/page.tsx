@@ -179,7 +179,7 @@ function LoginContent() {
                 style={{ accentColor: 'var(--primary)', width: '15px', height: '15px' }} />
               <span>Se souvenir de moi</span>
             </label>
-            <Link href="/reset-password" className="hover:text-primary transition-colors">Mot de passe oublié ?</Link>
+            <Link href="/forgot-password" className="hover:text-primary transition-colors">Mot de passe oublié ?</Link>
           </div>
 
           <div className="pt-4 form-element">
