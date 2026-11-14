@@ -1,4 +1,4 @@
-# FrixX — marketplace freelance (Project Synergy)
+# SynergyCraft — marketplace freelance
 
 Marketplace freelance **dual-side** : les clients commandent des services, les freelances
 les réalisent, le paiement passe par **FedaPay** (Mobile Money, cartes). Le projet a
